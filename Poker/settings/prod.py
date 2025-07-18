@@ -4,7 +4,7 @@ from .base import *
 
 # SECURITY WARNING: keep the secret key used in production secret!
 DEBUG = False
-ALLOWED_HOSTS = ['kamil123.tech', 'www.kamil123.tech']
+ALLOWED_HOSTS = ['www.kamil123.tech']
 
 # https
 SECURE_SSL_REDIRECT = True
