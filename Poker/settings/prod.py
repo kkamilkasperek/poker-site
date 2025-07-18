@@ -1,8 +1,18 @@
+from django.conf.global_settings import CSRF_COOKIE_SECURE
+
 from .base import *
 
 # SECURITY WARNING: keep the secret key used in production secret!
 DEBUG = False
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['kamil123.tech', 'www.kamil123.tech']
+
+# https
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+# proxy headers
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED', 'https')
 
 DATABASES = {
     'default': {
