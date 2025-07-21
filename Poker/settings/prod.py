@@ -21,4 +21,5 @@ DATABASES = {
     }
 }
 
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
