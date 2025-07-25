@@ -1,0 +1,14 @@
+<nav>
+    <h3><a href="{% url 'index' %}">LOGO</a></h3>
+    <ul>
+        <li><a href="{% url 'index' %}">Home</a></li>
+        <li><a href="{% url 'rooms' %}">Pokoje</a></li>
+    </ul>
+    {% if user.is_authenticated %}
+        <span>Welcome back {{ user.username }}</span>
+        <a href="{% url 'logout' %}">Logout</a>
+    {% else %}
+        <a href="{% url 'login' %}">Login</a>
+    {% endif %}
+</nav>
+<hr>

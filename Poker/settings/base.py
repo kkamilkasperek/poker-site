@@ -1,4 +1,6 @@
 from pathlib import Path
+
+from django.conf.global_settings import AUTHENTICATION_BACKENDS
 from dotenv import load_dotenv
 import os
 
@@ -60,6 +62,10 @@ WSGI_APPLICATION = 'Poker.wsgi.application'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]
 
 AUTH_PASSWORD_VALIDATORS = [
     {

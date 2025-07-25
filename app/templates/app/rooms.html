@@ -1,0 +1,61 @@
+{% extends 'main.html' %}
+{% load static %}
+{% block content %}
+    <head>
+        <link rel="stylesheet" href="{% static 'app/css/rooms.css' %}">
+    </head>
+    <div class="upper-bar">
+        <a href="{% url 'create_room' %}">Stwórz Pokój</a>
+        <form method="get" action="{% url 'rooms' %}">
+            <input type="text" name="query" value="{{ query }}">
+            <input type="submit" value="Szukaj">
+        </form>
+    </div>
+    <div class="main-frame">
+        <div class="room-list">
+            <h2>Pokoje</h2>
+            <ul>
+                {% for room in rooms %}
+                    <li>
+                        <a class="room-details-link" href="{% url 'rooms' %}?id={{ room.id }}&query={{ query }}">
+                        <p>{{ room.name }}</p>
+                        Hosted by {{ room.host.username }}</a>
+                        <hr>
+                    </li>
+                {% endfor %}
+            </ul>
+
+        </div>
+        <div class="room-details">
+            {% if selected_room %}
+                <h2>{{ selected_room.name }}</h2>
+                <p>Pokój {{ selected_room.is_private|yesno:"Prywatny,Publiczny" }}</p>
+                {% if is_participant %}
+                    <p>Jesteś graczem tego pokoju</p>
+                    <p><a href="#">Przejdź</a></p>
+                {% elif selected_room.is_private %}
+                    <form method="post" action="{% url 'rooms' %}?id={{ selected_room.id }}&query={{ query }}">
+                        {% csrf_token %}
+                        <label for="password">Wpisz hasło:</label>
+                        <input type="password" name="password" id="password" required>
+                        <input type="submit" value="Dołącz">
+                         {% if messages %}
+                            <div class="messages">
+                                {% for message in messages %}
+                                    <p>{{ message }}</p>
+                                {% endfor %}
+                            </div>
+                         {% endif %}
+                    </form>
+                    <p><a href="#">Przejdź</a></p>
+                {% else %}
+                    <p><a href="#">Dołącz</a></p>
+                    <p><a href="#">Przejdź</a></p>
+                {% endif %}
+             {% else %}
+                <h2>Szczegóły pokoju</h2>
+                <p>Wybierz jeden z pokoi</p>
+              {% endif %}
+        </div>
+    </div>
+{% endblock %}
