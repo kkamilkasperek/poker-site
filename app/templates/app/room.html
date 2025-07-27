@@ -1,0 +1,38 @@
+{% extends 'main.html' %}
+{% load static %}
+{% block content %}
+    <head>
+        <link rel="stylesheet" href="{% static 'app/css/room.css' %}">
+    </head>
+    <div class="room-info">
+        <div>
+            <h5>{{ room.name }}</h5>
+            <p>Ilość graczy {{ room.players.all.count }}/{{ room.max_players }}</p>
+        </div>
+        <div>
+            <h5>Poziom ciemnych</h5>
+            <p>{{ small_blind }} / {{ room.blinds_level }}</p>
+        </div>
+        <button>Odejdź/Dołącz</button>
+{#        {% if role == 'participant' %}#}
+{#            <button>Odejdź</button>#}
+{#        {% else %}#}
+{#            <button>Dołącz</button>#}
+{#        {% endif %}#}
+    </div>
+
+    <div>
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <p>{{ message }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    {% if user == room.host %}
+        <a href="{% url 'delete_room' room.id %}">Usuń</a>
+     {% endif %}
+
+{% endblock %}

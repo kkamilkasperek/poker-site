@@ -32,7 +32,7 @@
                 <p>Pokój {{ selected_room.is_private|yesno:"Prywatny,Publiczny" }}</p>
                 {% if is_participant %}
                     <p>Jesteś graczem tego pokoju</p>
-                    <p><a href="#">Przejdź</a></p>
+                    <p><a href="{% url 'join_room' selected_room.id %}?role=observer">Przejdź</a></p>
                 {% elif selected_room.is_private %}
                     <form method="post" action="{% url 'rooms' %}?id={{ selected_room.id }}&query={{ query }}">
                         {% csrf_token %}
@@ -47,10 +47,10 @@
                             </div>
                          {% endif %}
                     </form>
-                    <p><a href="#">Przejdź</a></p>
+                    <p><a href="{% url 'join_room' selected_room.id %}?role=observer">Przejdź</a></p>
                 {% else %}
-                    <p><a href="#">Dołącz</a></p>
-                    <p><a href="#">Przejdź</a></p>
+                    <p><a href="{% url 'join_room' selected_room.id %}?role=participant">Dołącz</a></p>
+                    <p><a href="{% url 'join_room' selected_room.id %}?role=observer">Przejdź</a></p>
                 {% endif %}
              {% else %}
                 <h2>Szczegóły pokoju</h2>

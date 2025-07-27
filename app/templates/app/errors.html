@@ -1,0 +1,12 @@
+{% extends 'main.html' %}
+{% block content %}
+    <h2>Niedozwolona akcja</h2>
+    {% if messages %}
+        <div>
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+{% endblock %}

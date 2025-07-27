@@ -9,4 +9,6 @@ urlpatterns = [
     path('rooms/', views.rooms, name='rooms'),
     path('rooms/create/', views.createRoom, name='create_room'),
     path('room/<int:room_id>/', views.joinRoom, name='join_room'),
+    path('room-delete/<int:room_id>/', views.deleteRoom, name='delete_room'),
+    path('forbidden/', views.errorMessage, name='forbidden'),
 ]

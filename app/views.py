@@ -4,6 +4,7 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Q
+from django.urls import reverse
 
 from app.forms import RegisterForm, RoomForm
 from app.models import PokerRoom, Player
@@ -13,6 +14,9 @@ from app.models import PokerRoom, Player
 
 def index(request):
     return render(request, 'app/index.html')
+
+def errorMessage(request):
+    return render(request, 'app/errors.html', status=403)
 
 def registerUser(request):
     if request.method == "POST":
@@ -51,12 +55,15 @@ def logoutUser(request):
 
 def rooms(request):
     if request.method == "POST": # User is trying to join a private room with password
+        if not request.user.is_authenticated:
+            messages.error(request, "Musisz być zalogowany, aby dołączyć pokoju.")
+            return redirect('login')
         room_id = request.GET.get('id')
         password = request.POST.get('password')
         room = get_object_or_404(PokerRoom, id=room_id, is_private=True)
 
         if room.password == password:
-            return redirect('join_room', room_id=room.id)
+            return redirect(reverse('join_room', kwargs={'room_id': room.id}) + '?role=participant')
         else:
             messages.error(request, "Błędne hasło do pokoju.")
             # return redirect('rooms')
@@ -95,4 +102,24 @@ def createRoom(request):
     return render(request, 'app/room_form.html', {"form": form})
 
 def joinRoom(request, room_id):
-    pass
+    room = get_object_or_404(PokerRoom, id=room_id)
+    role = request.GET.get('role', 'observer')
+    current_players_count = room.players.count()
+    if role == 'participant' and current_players_count >= room.max_players:
+        messages.error("Pokój jest pełny. Nie możesz dołączyć jako uczestnik.")
+        role = 'observer'
+    context = {
+        "room": room,
+        "small_blind": room.blinds_level // 2,
+        "role": role,
+    }
+    return render(request, 'app/room.html', context)
+
+def deleteRoom(request, room_id):
+    room = get_object_or_404(PokerRoom, id=room_id)
+    if request.user == room.host:
+        room.delete()
+    else:
+        messages.error(request, "Tylko gospodarz pokoju może go usunąć.")
+        return redirect('forbidden')
+    return redirect('rooms')
