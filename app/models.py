@@ -16,16 +16,16 @@ class PokerRoom(models.Model):
     def __str__(self):
         return self.name
 
-# class Player(models.Model):
-#     pk = models.CompositePrimaryKey("user_id", "room_id")
-#     user = models.ForeignKey(User, on_delete=models.CASCADE)
-#     room = models.ForeignKey(PokerRoom, on_delete=models.CASCADE)
-#     is_participant = models.BooleanField(default=False)
-#
-#     class Meta:
-#         unique_together = ("user", "room")
-#
-#     def __str__(self):
-#         return f"{self.user.username} in {self.room.name}"
+class Player(models.Model):
+    pk = models.CompositePrimaryKey("user_id", "room_id")
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    room = models.ForeignKey(PokerRoom, on_delete=models.CASCADE)
+    is_participant = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ("user", "room")
+
+    def __str__(self):
+        return f"{self.user.username} in {self.room.name}"
 
 
