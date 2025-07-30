@@ -35,4 +35,9 @@
         <a href="{% url 'delete_room' room.id %}">Usuń</a>
      {% endif %}
 
+    <script>
+        const roomId = "{{ room.id }}";
+    </script>
+    <script src="{% static 'app/js/websocket.js' %}"></script>
+
 {% endblock %}

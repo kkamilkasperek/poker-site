@@ -9,4 +9,4 @@ class PokerConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         # Handle incoming messages from the WebSocket
-        await self.send(text_data=f"Message received: {text_data}")
+        await self.send(text_data=text_data)
