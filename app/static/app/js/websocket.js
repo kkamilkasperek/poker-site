@@ -1,4 +1,4 @@
-const socket = new WebSocket(`wss://localhost:8000/ws/room/${roomId}`);
+const socket = new WebSocket(`wss://www.kamil123.tech/ws/room/${roomId}`);
 
 socket.onopen = () => {
     console.log("WebSocket connection established.");
