@@ -7,13 +7,15 @@
     <div class="room-info">
         <div>
             <h5>{{ room.name }}</h5>
-            <p>Ilość graczy {{ room.players.all.count }}/{{ room.max_players }}</p>
+            <p id="players-count">Ilość graczy <span id="current-players-count">{{ room.players.all.count }}</span>/{{ room.max_players }}</p>
         </div>
         <div>
             <h5>Poziom ciemnych</h5>
             <p>{{ small_blind }} / {{ room.blinds_level }}</p>
         </div>
-        <button>Odejdź/Dołącz</button>
+        <button id="entry-button">Odejdź/Dołącz</button>
+        <div id="acting-player"></div>
+        <div>Pula: <span id="pot-size"></span></div>
 {#        {% if role == 'participant' %}#}
 {#            <button>Odejdź</button>#}
 {#        {% else %}#}
@@ -31,12 +33,61 @@
         {% endif %}
     </div>
 
+    <div id="table">
+
+         <div id="board-cards"></div>
+
+        {% for seat_number in seat_range %}
+        	<div id="seat-{{ seat_number }}" class="seat">
+                <hr>
+                Pozycja: {{ seat_number }} <br>
+                (wolne miejsce)
+            </div>
+        {% endfor %}
+
+    </div>
+
+
+    <div class="action-panel">
+    <hr>
+        <div class="info d-flex justify-content-between align-items-center mb-2" hidden>
+            <div>
+                <strong>Żetony:</strong> <span id="playerChips"></span>
+            </div>
+            <div>
+                <strong>Aktualny układ:</strong> <span id="playerHand"></span>
+            </div>
+        </div>
+        <div class="action d-flex justify-content-between" hidden>
+            <button class="check btn btn-primary">Check</button>
+            <button class="fold btn btn-danger">Fold</button>
+            <button class="call btn btn-success">Call</button>
+            <button class="raise btn btn-warning">Raise</button>
+            <input type="range" min="0" step="1" class="raise-slider form-control-range mx-2" style="flex: 1;">
+            <input type="number" min="0" class="raise-input form-control" placeholder="Kwota" style="width: 100px;">
+        </div>
+    </div>
+
+
     {% if user == room.host %}
         <a href="{% url 'delete_room' room.id %}">Usuń</a>
      {% endif %}
 
     <script>
         const roomId = "{{ room.id }}";
+        const role = "{{ role }}";
+        const maxPlayers = {{ room.max_players }};
+
+        const raiseSlider = document.querySelector('.raise-slider');
+        const raiseInput = document.querySelector('.raise-input');
+
+        raiseSlider.addEventListener('input', (event) => {
+            raiseInput.value = event.target.value;
+        });
+
+        raiseInput.addEventListener('input', (event) => {
+            raiseSlider.value = event.target.value;
+        });
     </script>
     <script src="{% static 'app/js/websocket.js' %}"></script>
 

@@ -8,6 +8,7 @@ from django.urls import reverse
 
 from app.forms import RegisterForm, RoomForm
 from app.models import PokerRoom, Player
+from .PokerGame import PokerGame, poker_games
 
 
 # Create your views here.
@@ -94,24 +95,32 @@ def createRoom(request):
             room = form.save(commit=False)
             room.host = request.user
             room.save()
-            return redirect('join_room', room_id=room.id)
+            poker_games[room.id] = PokerGame(room.id, big_blind=room.blinds_level,max_players=room.max_players)
+            return redirect(f"{reverse("join_room", kwargs={'room_id': room.id})}?role=participant")
         else:
             messages.error(request, "Błąd podczas tworzenia pokoju. Sprawdź poprawność danych.")
     else:
         form = RoomForm()
     return render(request, 'app/room_form.html', {"form": form})
 
+@login_required(login_url='login')
 def joinRoom(request, room_id):
     room = get_object_or_404(PokerRoom, id=room_id)
     role = request.GET.get('role', 'observer')
-    current_players_count = room.players.count()
+    current_players_count = Player.objects.filter(room=room, is_participant=True).count()
     if role == 'participant' and current_players_count >= room.max_players:
         messages.error("Pokój jest pełny. Nie możesz dołączyć jako uczestnik.")
         role = 'observer'
+
+    # if role == 'participant' and not request.user.is_authenticated:
+    #     messages.error(request, "Musisz być zalogowany, aby dołączyć jako uczestnik.")
+    #     return redirect('login')
+
     context = {
         "room": room,
         "small_blind": room.blinds_level // 2,
         "role": role,
+        "seat_range": range(room.max_players),
     }
     return render(request, 'app/room.html', context)
 
