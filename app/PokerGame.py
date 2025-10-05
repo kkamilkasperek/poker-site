@@ -51,7 +51,7 @@ class PokerGame:
              'flop': self._setup_flop,
              'turn': self._setup_turn,
              'river': self._setup_river,
-        #     'showdown': self._setup_showdown
+             'showdown': self._setup_showdown
         }
 
     async def _next_state(self):
@@ -151,6 +151,31 @@ class PokerGame:
         state_result = await self._betting_round()
         if state_result == 'next_state':
             await self._next_state()
+
+    async def _setup_showdown(self):
+        remaining_players = self.get_not_folded_players()
+        winner_positions = []
+        best_hand = None
+        if len(remaining_players) == 1:
+            # TODO: handle win
+            winner_positions = list(remaining_players.keys())
+        else:
+            await self.notify_showdown(remaining_players)
+            for pos in remaining_players:
+                player = remaining_players[pos]
+                hand = self._evaluate_hand(player['cards'] + self.board_cards)
+                if best_hand is None:
+                    best_hand = hand
+                    winner_positions = [pos]
+                else:
+                    comparison = self._compare_hands(hand, best_hand)
+                    if comparison == 1:
+                        best_hand = hand
+                        winner_positions = [pos]
+                    elif comparison == 0:
+                        winner_positions.append(pos)
+        await self._handle_winner(winner_positions)
+        await self._next_state()
 
 
     async def _betting_round(self):
@@ -632,6 +657,14 @@ class PokerGame:
                     'pot': self.pot,
                 }
             )
+
+    async def notify_showdown(self, remaining_players):
+        await self._send_broadcast_message(
+            'showdown',
+            {
+                'hands': {pos: [str(card) for card in remaining_players[pos]['cards']] for pos in remaining_players},
+            }
+        )
 
     async def broadcast_player_turn(self, identifier):
         position, player = self.get_player(identifier)
