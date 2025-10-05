@@ -75,7 +75,8 @@ class PokerGame:
             asyncio.create_task(setup_method())
 
     def _setup_waiting(self):
-        pass
+        self._reset_game()
+        self.start_game()
 
     async def _setup_pre_flop(self):
         ''' If heads up, dealer is small blind '''
@@ -157,7 +158,6 @@ class PokerGame:
         winner_positions = []
         best_hand = None
         if len(remaining_players) == 1:
-            # TODO: handle win
             winner_positions = list(remaining_players.keys())
         else:
             await self.notify_showdown(remaining_players)
@@ -191,8 +191,8 @@ class PokerGame:
         # TODO: implement betting sequence using generators
         for i, position in enumerate(itertools.cycle(betting_order)):
             if len(self.get_not_folded_players()) <= 1: # remaining player wins
-                # TODO: handle win
-                return 'next_state'
+                await self._handle_winner(list(self.get_not_folded_players().keys()))
+                return 'waiting'
             if i >= len(betting_order): # completed a full round
                 if self.game_state == 'pre_flop' and self.current_max_bet == self.big_blind:
                     break
@@ -209,6 +209,22 @@ class PokerGame:
             else:
                 continue
         return 'next_state'
+
+    async def _handle_winner(self, winner_positions):
+        if not winner_positions:
+            return
+        split_pot = self.pot // len(winner_positions)
+        for pos in winner_positions:
+            player = self.players.get(pos)
+            if player:
+                player['chip_count'] += split_pot
+        await self._send_broadcast_message(
+            'round_winner',
+            {
+                'winner_positions': winner_positions,
+                'amount_won': split_pot,
+            }
+        )
 
 
 
@@ -471,12 +487,36 @@ class PokerGame:
                             return 0
             return None  # wrong input
 
+    def _reset_game(self):
+        self.deck = None
+        self.board_cards = Stack()
+        self.pot = 0
+        self.current_max_bet = 0
+        self.current_player_position = None
+        self.last_raiser_position = None
+        for pos in self.players:
+            player = self.players.get(pos)
+            if player:
+                if player['chip_count'] <= 0:
+                    self._send_private_message(player['username'], 'out_of_chips', {})
+                    self.remove_player(pos)
+                player['cards'] = None
+                player['folded'] = False
+                player['all_in'] = False
+                player['current_bet'] = 0
+                player['active'] = False
+
     def start_game(self):
         ''' Start a new poker game if there are enough players. Set dealer'''
         active_players = self.get_all_players()
         if len(active_players) >= 2 and self.game_state == 'waiting':
-            self.dealer_position = min(active_players) if self.dealer_position is None else \
-                (self.dealer_position + 1) % len(self.players)
+            if self.dealer_position is None:
+                self.dealer_position = min(active_players.keys())
+            else:
+                next_position = (self.dealer_position + 1) % len(self.players)
+                while next_position not in active_players.keys():
+                    next_position = (next_position + 1) % len(self.players)
+                self.dealer_position = next_position
             self._transition_state("pre_flop")
             return True
         return False
@@ -496,14 +536,14 @@ class PokerGame:
                 return i
         return None  # No available slot
 
-    def remove_player(self, player):
-        for i in self.players:
-            if self.players[i] is not None and self.players[i]['username'] == player.username:
-                if self.current_player_position == i and self.waiting_for_player and not self.player_action_event.is_set():
-                    self.waiting_for_player = False
-                    self.player_action_event.set()
-                self.players[i] = None
-                return i
+    def remove_player(self, identifier):
+        position, player = self.get_player(identifier)
+        if position is not None:
+            if self.current_player_position == position and self.waiting_for_player and not self.player_action_event.is_set():
+                self.waiting_for_player = False
+                self.player_action_event.set()
+            self.players[position] = None
+            return position
         return None
 
     def get_player(self, identifier): # get player by username or position

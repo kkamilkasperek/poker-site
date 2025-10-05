@@ -160,7 +160,7 @@ class PokerConsumer(AsyncJsonWebsocketConsumer):
 
     async def remove_player_game(self):
         if self.role == 'participant':
-            position = poker_games.get(int(self.room_id)).remove_player(self.user)
+            position = poker_games.get(int(self.room_id)).remove_player(self.user.username)
             # if position is None: player can be already removed
             #     raise ValueError("Player not found in the game.")
 
