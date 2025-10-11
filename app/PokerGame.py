@@ -36,6 +36,8 @@ class PokerGame:
         self.player_action_event = asyncio.Event()
         self.waiting_for_player = False
 
+        self.ready_for_new_round = True
+
         self.state_transitions = {
             'waiting': 'pre_flop',
             'pre_flop': 'flop',
@@ -65,18 +67,19 @@ class PokerGame:
                 self.players[pos]['current_bet'] = 0
         await self.notify_clear_betting()
         if next_state:
-            self._transition_state(next_state)
+            await self._transition_state(next_state)
 
-    def _transition_state(self, new_state):
+    async def _transition_state(self, new_state):
         ''' Transition to a new game state and set up the state. '''
         self.game_state = new_state
         setup_method = self.state_setup_methods.get(new_state)
         if setup_method:
-            asyncio.create_task(setup_method())
+            await setup_method()
 
-    def _setup_waiting(self):
-        self._reset_game()
-        self.start_game()
+    async def _setup_waiting(self):
+        await self._reset_game()
+        await self.notify_reset()
+        await self.start_game()
 
     async def _setup_pre_flop(self):
         ''' If heads up, dealer is small blind '''
@@ -127,15 +130,18 @@ class PokerGame:
         if state_result == 'next_state':
             await self._next_state()
         elif state_result == 'waiting':
-            self._transition_state('waiting')
+            await self._transition_state('waiting')
 
     async def _setup_flop(self):
         self.board_cards.add(self.deck.deal(3))
         await self.notify_board_cards()
+        await self._calculate_players_hand_values()
         self.current_player_position = (self.dealer_position + 1) % len(self.players)
         state_result = await self._betting_round()
         if state_result == 'next_state':
             await self._next_state()
+        elif state_result == 'waiting':
+            await self._transition_state('waiting')
 
     async def _setup_turn(self):
         self.board_cards.add(self.deck.deal(1))
@@ -144,6 +150,8 @@ class PokerGame:
         state_result = await self._betting_round()
         if state_result == 'next_state':
             await self._next_state()
+        elif state_result == 'waiting':
+            await self._transition_state('waiting')
 
     async def _setup_river(self):
         self.board_cards.add(self.deck.deal(1))
@@ -152,6 +160,8 @@ class PokerGame:
         state_result = await self._betting_round()
         if state_result == 'next_state':
             await self._next_state()
+        elif state_result == 'waiting':
+            await self._transition_state('waiting')
 
     async def _setup_showdown(self):
         remaining_players = self.get_not_folded_players()
@@ -161,6 +171,7 @@ class PokerGame:
             winner_positions = list(remaining_players.keys())
         else:
             await self.notify_showdown(remaining_players)
+            await asyncio.sleep(8) # give time for players to see cards
             for pos in remaining_players:
                 player = remaining_players[pos]
                 hand = self._evaluate_hand(player['cards'] + self.board_cards)
@@ -238,6 +249,18 @@ class PokerGame:
                 next_pos = (next_pos + 1) % len(self.players)
             self.current_player_position = next_pos
         return positions[self.current_player_position:] + positions[:self.current_player_position]
+
+    async def _calculate_players_hand_values(self):
+        active_players = self.get_not_folded_players()
+        for pos in active_players:
+            player = active_players[pos]
+            if player and player['cards']:
+                hand_value = self._evaluate_hand(player['cards'] + self.board_cards)
+                await self._send_private_message(player['username'], 'hand_value', {
+                    'hand_value': hand_value[0],
+                    'hand_cards': [str(x) for card in hand_value[1] for x in \
+                                   (card if isinstance(card, list) else [card])],
+                })
 
     def _evaluate_hand(self, cards):  # input is a Stack class of cards
         def straight_flush(cards):
@@ -487,7 +510,7 @@ class PokerGame:
                             return 0
             return None  # wrong input
 
-    def _reset_game(self):
+    async def _reset_game(self):
         self.deck = None
         self.board_cards = Stack()
         self.pot = 0
@@ -498,18 +521,24 @@ class PokerGame:
             player = self.players.get(pos)
             if player:
                 if player['chip_count'] <= 0:
-                    self._send_private_message(player['username'], 'out_of_chips', {})
+                    await self._send_private_message(player['username'], 'out_of_chips', {})
                     self.remove_player(pos)
                 player['cards'] = None
                 player['folded'] = False
                 player['all_in'] = False
                 player['current_bet'] = 0
                 player['active'] = False
+        self.ready_for_new_round = True
 
-    def start_game(self):
+    def can_start_game(self):
+        ''' Check if enough players are active '''
+        active_players = self.get_all_players()
+        return len(active_players) >= 2 and self.game_state == 'waiting'
+
+    async def start_game(self):
         ''' Start a new poker game if there are enough players. Set dealer'''
         active_players = self.get_all_players()
-        if len(active_players) >= 2 and self.game_state == 'waiting':
+        if self.can_start_game() and self.ready_for_new_round:
             if self.dealer_position is None:
                 self.dealer_position = min(active_players.keys())
             else:
@@ -517,7 +546,8 @@ class PokerGame:
                 while next_position not in active_players.keys():
                     next_position = (next_position + 1) % len(self.players)
                 self.dealer_position = next_position
-            self._transition_state("pre_flop")
+            self.ready_for_new_round = False
+            await self._transition_state("pre_flop")
             return True
         return False
 
@@ -647,9 +677,14 @@ class PokerGame:
         return True, None
     
     async def notify_clear_betting(self):
-        await self._send_broadcast_message(
-            'clear_betting',{}
-        )
+        await self._send_broadcast_message('clear_betting',{})
+
+    async def notify_reset(self):
+        players = self.get_all_players()
+        await self._send_broadcast_message('reset',{
+            'chip_counts': {pos: players[pos]['chip_count'] for pos in players},
+            'dealer_position': self.dealer_position,
+        })
 
     async def notify_bet(self, identifier):
         position, player = self.get_player(identifier)

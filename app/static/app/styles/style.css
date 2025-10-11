@@ -1,0 +1,37 @@
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+body {
+    background-color: #121212;
+    color: #ffffff;
+}
+
+/* Stylizacja dla panelu filtracji i sortowania */
+
+.container .d-flex {
+    margin-bottom: 20px;
+}
+
+/*.input-group .form-control {*/
+/*    border-top-right-radius: 0;*/
+/*    border-bottom-right-radius: 0;*/
+/*}*/
+
+/*.input-group .input-group-append .btn {*/
+/*    border-top-left-radius: 0;*/
+/*    border-bottom-left-radius: 0;*/
+/*}*/
+
+
+.container-fluid {
+    background: url("../img/pokerbg_generated.jpg") repeat center center;
+}

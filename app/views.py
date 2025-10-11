@@ -14,7 +14,7 @@ from .PokerGame import PokerGame, poker_games
 # Create your views here.
 
 def index(request):
-    return render(request, 'app/index.html')
+    return render(request, 'app/index.html', {"page": "home"})
 
 def errorMessage(request):
     return render(request, 'app/errors.html', status=403)
@@ -28,10 +28,17 @@ def registerUser(request):
             return redirect('index')
     else:
         form = RegisterForm()
-    context = {"form": form, "type": "register"}
+    context = {"form": form,
+               "type": "register",
+               "page": "login"
+               }
     return render(request, 'app/login_register.html', context)
 
 def loginUser(request):
+    identifier_error = None
+    password_error = None
+    identifier = ""
+
     if request.method == "POST":
         identifier = request.POST.get('username_or_email')
         password = request.POST.get('password')
@@ -44,10 +51,16 @@ def loginUser(request):
                 login(request, user)
                 return redirect('index')
             else:
-                messages.error(request, 'Nieprawidłowe hasło')
+                password_error = 'Nieprawidłowe hasło.'
         else:
-            messages.error(request, "Nieprawidłowa nazwa użytkownika lub e-mail")
-    context = {"type": "login"}
+            identifier_error = 'Nieprawidłowa nazwa użytkownika lub e-mail.'
+    context = {
+        "type": "login",
+        "identifier": identifier,
+        "identifier_error": identifier_error,
+        "password_error": password_error,
+        "page": "login"
+    }
     return render(request, 'app/login_register.html', context)
 
 def logoutUser(request):
@@ -84,6 +97,7 @@ def rooms(request):
         "query": query,
         "selected_room": selected_room,
         "is_participant": is_participant if selected_room else None,
+        "page": "rooms"
     }
     return render(request, 'app/rooms.html', context)
 
@@ -101,7 +115,7 @@ def createRoom(request):
             messages.error(request, "Błąd podczas tworzenia pokoju. Sprawdź poprawność danych.")
     else:
         form = RoomForm()
-    return render(request, 'app/room_form.html', {"form": form})
+    return render(request, 'app/room_form.html', {"form": form, "page": "create_room"})
 
 @login_required(login_url='login')
 def joinRoom(request, room_id):

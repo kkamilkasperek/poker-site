@@ -1,4 +1,5 @@
-from asgiref.sync import async_to_sync
+import asyncio
+
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from urllib.parse import parse_qs
 from channels.db import database_sync_to_async
@@ -28,14 +29,14 @@ class PokerConsumer(AsyncJsonWebsocketConsumer):
 
         self.poker_room = poker_games.get(int(self.room_id))
 
-        await self.update_or_create_player_db()
-        await self.create_player_game()
-
         if self.poker_room.message_callback is None:
             self.poker_room.message_callback = self.broadcast_game_message
             self.poker_room.private_message_callback = self.private_game_message
 
         await self.accept()
+
+        await self.update_or_create_player_db()
+        await self.create_player_game()
 
     async def disconnect(self, code):
         if self.role == 'participant':
@@ -68,8 +69,8 @@ class PokerConsumer(AsyncJsonWebsocketConsumer):
                     'sender_channel': self.channel_name,
                 }
             )
-        elif msg_type == 'start_game' and self.role == 'participant':
-            self.poker_room.start_game()
+        # elif msg_type == 'start_game' and self.role == 'participant':
+        #     asyncio.create_task(self.poker_room.start_game())
         elif msg_type == 'player_action' and self.role == 'participant':
             print("Received action:", self.user.username, content)
             action = content.get('action')
@@ -109,6 +110,9 @@ class PokerConsumer(AsyncJsonWebsocketConsumer):
                     'players': room_players,
                     'your_position': request_player[0],
                 })
+                # start game if all players are ready
+                if self.poker_room.can_start_game():
+                    asyncio.create_task(self.poker_room.start_game())
         elif event['sender_channel'] == self.channel_name:
             # send to observer info about all players in the room
             await self.send_json({
@@ -125,6 +129,7 @@ class PokerConsumer(AsyncJsonWebsocketConsumer):
 
     # function responsible for sending game_messages, called by PokerGame instance
     async def broadcast_game_message(self, message_type, data):
+        print("Broadcasting message:", message_type, data)
         await self.channel_layer.group_send(
             self.room_group_name,
             {
@@ -135,6 +140,7 @@ class PokerConsumer(AsyncJsonWebsocketConsumer):
         )
 
     async def private_game_message(self, username, message_type, data):
+        print("Sending private message:", username, message_type, data)
         user_group_name = f"poker_user_{username}"
         await self.channel_layer.group_send(
             user_group_name,
@@ -154,9 +160,10 @@ class PokerConsumer(AsyncJsonWebsocketConsumer):
 
     async def create_player_game(self):
         if self.role == 'participant':
-            position = poker_games.get(int(self.room_id)).add_player(self.user)
+            position = self.poker_room.add_player(self.user)
             if position is None:
                 raise ValueError("No available slot in the game.")
+
 
     async def remove_player_game(self):
         if self.role == 'participant':

@@ -1,8 +1,9 @@
 {% extends 'main.html' %}
 {% block content %}
-    <div>
+    <!-- Main Content -->
+    <div class="main-content">
         <h1>Witamy na naszej stronie!</h1>
-        <p>Najlepsze miejsce na Twoje potrzeby</p>
-        <a href="{% url 'login' %}"><button>Zaloguj sie</button></a>
+        <p>Najlepsze miejsce na Twoje potrzeby.</p>
+        <a href="{% url 'login' %}"><button class="btn btn-primary btn-lg">Zaloguj się</button></a>
     </div>
 {% endblock %}

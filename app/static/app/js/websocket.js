@@ -53,11 +53,23 @@ socket.onmessage = (event) => {
         case 'clear_betting':
             clearBetting();
             break;
+        case 'hand_value':
+            handValue(data.hand_value, data.hand_cards);
+            break;
         case 'player_checked':
             playerChecked(data.position);
             break;
-        case 'player_fold':
+        case 'player_folded':
             playerFold(data.position);
+            break;
+        case 'showdown':
+            showdown(data.hands)
+            break;
+        case 'round_winner':
+            roundWinner(data.winner_positions, data.amount_won);
+            break;
+        case 'reset':
+            reset(data.chip_counts);
             break;
         case 'action_error':
             // console.error(data.message);
@@ -114,14 +126,14 @@ const initParticipant = (players) => {
 
     actionPanel.querySelector("div").hidden = false;
 
-    // temporary solution for initation game
-    if (numberOfPlayers >= 2) {
-        socket.send(JSON.stringify(
-            {
-                type: "start_game",
-            }
-        ))
-    }
+    // // temporary solution for initation game
+    // if (numberOfPlayers >= 2) {
+    //     socket.send(JSON.stringify(
+    //         {
+    //             type: "start_game",
+    //         }
+    //     ))
+    // }
 }
 
 const initObserver = (players) => {
@@ -135,10 +147,7 @@ const initObserver = (players) => {
         const playerCards = players[pos].cards;
         let cardsHTML = '';
         if (playerCards) {
-            for (const card of playerCards) {
-                if (card === 'XX') cardsHTML += 'reverse';
-                else cardsHTML += card;
-            }
+            cardsHTML = playerCards.join(', ');
         }
         const seatDiv = document.getElementById(`seat-${pos}`);
         if (seatDiv) {
@@ -403,5 +412,122 @@ const playerFold = (position) => {
         if (betSpan) {
             betSpan.textContent = `Pas`;
         }
+        const cardsSpan = seatDiv.querySelector(".cards");
+        if (cardsSpan) {
+            cardsSpan.textContent = ``;
+        }
     }
+}
+
+const showdown = (hands) => {
+    const roomInfoDiv = document.querySelector(".room-info");
+    const actingPlayerInfo = roomInfoDiv.querySelector("#acting-player")
+    actingPlayerInfo.textContent = ``;
+    for (const position in hands) {
+        const relativePos = relativePosition(position);
+        const hand = hands[position];
+        const seatDiv = document.getElementById(`seat-${relativePos}`);
+        if (seatDiv) {
+            const cardsSpan = seatDiv.querySelector(".cards");
+            if (cardsSpan) {
+                cardsSpan.textContent = hand.join(', ');
+            }
+        }
+    }
+}
+
+const roundWinner = (winner_positions, amount_won) => {
+    for (const position of winner_positions) {
+        const relativePos = relativePosition(position);
+        const seatDiv = document.getElementById(`seat-${relativePos}`);
+        if (seatDiv) {
+            const betSpan = seatDiv.querySelector(".bet");
+            if (betSpan) {
+                betSpan.textContent = `Wygrywa: ${amount_won} chips`;
+            }
+        }
+    }
+}
+
+const reset = (chip_counts) => {
+    const actionPanel = document.querySelector(".action-panel");
+    const buttonsDiv = actionPanel.querySelector(".action");
+    const potDiv = document.getElementById("pot-size");
+    const boardDiv = document.getElementById("board-cards");
+    const tableDiv = document.getElementById("table");
+    const actingPlayerInfo = document.querySelector(".room-info #acting-player");
+    const playerHandDiv = actionPanel.querySelector("#playerHand");
+    actingPlayerInfo.textContent = ``;
+    playerHandDiv.textContent = ``;
+    buttonsDiv.hidden = true;
+    boardDiv.textContent = ``;
+    potDiv.textContent = ``;
+    for (const seat of tableDiv.children) {
+        const cardsSpan = seat.querySelector(".cards");
+        if (cardsSpan) {
+            cardsSpan.textContent = ``;
+        }
+        const betSpan = seat.querySelector(".bet");
+        if (betSpan) {
+            betSpan.textContent = ``;
+        }
+    }
+    for (const pos in chip_counts) {
+        const relativePos = relativePosition(pos);
+        const seatDiv = document.getElementById(`seat-${relativePos}`);
+        if (seatDiv) {
+            const chipsSpan = seatDiv.querySelector(".chips");
+            if (chipsSpan) {
+                chipsSpan.textContent = `${chip_counts[pos]}`;
+            }
+        }
+    }
+
+}
+
+const handValue = (hand_value, hand_cards) => {
+    const actionPanel = document.querySelector(".action-panel");
+    const playerHandDiv = actionPanel.querySelector("#playerHand");
+    switch (hand_value) {
+        case 'high_card':
+            const highCard = hand_cards[0].match(/^(\w+)/)[1];
+            playerHandDiv.textContent = `${highCard} high`;
+            break;
+        case 'pair':
+            const pair = hand_cards[0].match(/^(\w+)/)[1];
+            playerHandDiv.textContent = `pair of ${pair}s`;
+            break;
+        case 'two_pair':
+            const pair1 = hand_cards[0].match(/^(\w+)/)[1];
+            const pair2 = hand_cards[1].match(/^(\w+)/)[1];
+            playerHandDiv.textContent = `two pairs of ${pair1}s and ${pair2}s`;
+            break;
+        case 'three_of_kind':
+            const threeOfKind = hand_cards[0].match(/^(\w+)/)[1];
+            playerHandDiv.textContent = `three of a kind of ${threeOfKind}s`;
+            break;
+        case 'straight':
+            const highCardStraight = hand_cards[0].match(/^(\w+)/)[1];
+            playerHandDiv.textContent = `straight ${highCard} high`;
+            break;
+        case 'flush':
+            const highCardFlush = hand_cards[0].match(/^(\w+)/)[1];
+            playerHandDiv.textContent = `flush ${highCard} high`;
+            break;
+        case 'full_house':
+            const threeOfKindFlush = hand_cards[0].match(/^(\w+)/)[1];
+            const pairFlush = hand_cards[1].match(/^(\w+)/)[1];
+            playerHandDiv.textContent = `full house of ${threeOfKindFlush}s and ${pairFlush}s`;
+            break;
+        case 'four_of_kind':
+            const fourOfKind = hand_cards[0].match(/^(\w+)/)[1];
+            playerHandDiv.textContent = `four of a kind of ${fourOfKind}s`;
+            break;
+        case 'straight_flush':
+            const highCardStraightFlush = hand_cards[0].match(/^(\w+)/)[1];
+            playerHandDiv.textContent = `straight flush ${highCard} high`;
+
+
+    }
+
 }

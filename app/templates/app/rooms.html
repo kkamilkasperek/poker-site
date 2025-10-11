@@ -1,61 +1,93 @@
 {% extends 'main.html' %}
 {% load static %}
 {% block content %}
-    <head>
-        <link rel="stylesheet" href="{% static 'app/css/rooms.css' %}">
-    </head>
-    <div class="upper-bar">
-        <a href="{% url 'create_room' %}">Stwórz Pokój</a>
-        <form method="get" action="{% url 'rooms' %}">
-            <input type="text" name="query" value="{{ query }}">
-            <input type="submit" value="Szukaj">
-        </form>
-    </div>
-    <div class="main-frame">
-        <div class="room-list">
-            <h2>Pokoje</h2>
-            <ul>
-                {% for room in rooms %}
-                    <li>
-                        <a class="room-details-link" href="{% url 'rooms' %}?id={{ room.id }}&query={{ query }}">
-                        <p>{{ room.name }}</p>
-                        Hosted by {{ room.host.username }}</a>
-                        <hr>
-                    </li>
-                {% endfor %}
-            </ul>
 
-        </div>
-        <div class="room-details">
-            {% if selected_room %}
-                <h2>{{ selected_room.name }}</h2>
-                <p>Pokój {{ selected_room.is_private|yesno:"Prywatny,Publiczny" }}</p>
-                {% if is_participant %}
-                    <p>Jesteś graczem tego pokoju</p>
-                    <p><a href="{% url 'join_room' selected_room.id %}?role=observer">Przejdź</a></p>
-                {% elif selected_room.is_private %}
-                    <form method="post" action="{% url 'rooms' %}?id={{ selected_room.id }}&query={{ query }}">
-                        {% csrf_token %}
-                        <label for="password">Wpisz hasło:</label>
-                        <input type="password" name="password" id="password" required>
-                        <input type="submit" value="Dołącz">
-                         {% if messages %}
-                            <div class="messages">
-                                {% for message in messages %}
-                                    <p>{{ message }}</p>
-                                {% endfor %}
-                            </div>
-                         {% endif %}
-                    </form>
-                    <p><a href="{% url 'join_room' selected_room.id %}?role=observer">Przejdź</a></p>
-                {% else %}
-                    <p><a href="{% url 'join_room' selected_room.id %}?role=participant">Dołącz</a></p>
-                    <p><a href="{% url 'join_room' selected_room.id %}?role=observer">Przejdź</a></p>
-                {% endif %}
-             {% else %}
-                <h2>Szczegóły pokoju</h2>
-                <p>Wybierz jeden z pokoi</p>
-              {% endif %}
+<!-- Panel filtracji i sortowania -->
+<div class="container mt-3">
+    <div class="d-flex justify-content-between align-items-center">
+        <a href="{% url 'create_room' %}"><button class="btn btn-success">Stwórz nowy pokój</button></a>
+        <div class="input-group" style="max-width: 400px;">
+            <input type="text" class="form-control" name="query" value="{{ query }}" placeholder="Filtruj pokoje">
+            <div class="input-group-append">
+                <input class="btn btn-outline-secondary" type="submit" value="Sortuj">
+            </div>
         </div>
     </div>
+</div>
+
+<!-- Main Content -->
+<div class="container-fluid my-4">
+    <div class="row">
+        <!-- Left Column: List of rooms -->
+        <div class="col-md-7 d-flex flex-column">
+            <div class="room-list flex-fill">
+                <!-- Example Room Card -->
+                {% for room in rooms %}
+                    <a class="room-details-link" href="{% url 'rooms' %}?id={{ room.id }}&query={{ query }}">
+                        <div class="list-group-item list-group-item-action" data-room-id="{{ room.id }}">
+                            <h5 class="mb-1">{{ room.name }}</h5>
+                            <p class="mb-1">Hosted by {{ room.host.username }}</p>
+                            <small>Click for more information's</small>
+                        </div>
+                    </a>
+                {% endfor %}
+
+{#                <div class="list-group-item list-group-item-action" data-room-id="2">#}
+{#                    <h5 class="mb-1">Pokój 2</h5>#}
+{#                    <p class="mb-1">Krótki opis pokoju 2.</p>#}
+{#                    <small>Więcej informacji</small>#}
+{#                </div>#}
+                <!-- ... -->
+            </div>
+        </div>
+
+        <!-- Right Column: Room Details -->
+        <div class="col-md-5">
+            {% if selected_room %}
+                <div class="card room-details">
+                    <div class="card-body">
+                        <h5 class="card-title">Szczegóły Pokoju</h5>
+                        <h2 class="card-text">{{ selected_room.name }}</h2>
+                        <p class="card-text">
+                            {{ selected_room.is_private|yesno:"Private,Public" }} Room
+                        </p>
+                        {% if is_participant %}
+                            <p class="card-text">You are active player of this room</p>
+                            <a href="{% url 'join_room' selected_room.id %}?role=observer" class="btn btn-primary">Join as observer</a>
+                        {% elif selected_room.is_private %}
+                            <form method="post" action="{% url 'rooms' %}?id={{ selected_room.id }}&query={{ query }}">
+                                {% csrf_token %}
+                                <div class="form-group">
+                                    <label for="password">Enter password:</label>
+                                    <input type="password" name="password" id="password" class="form-control" required>
+                                    <input type="submit" value="Join" class="btn btn-primary mt-2">
+                                </div>
+                            </form>
+                            {% if messages %}
+                                <div class="messages">
+                                    {% for message in messages %}
+                                        <li>{{ message }}</li>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <p class="card-text"><a href="{% url 'join_room' selected_room.id %}?role=observer">Join as observer</a></p>
+                        {% else %}
+                            <p class="card-text"><a href="{% url 'join_room' selected_room.id %}?role=participant">Join as player</a></p>
+                            <p class="card-text"><a href="{% url 'join_room' selected_room.id %}?role=observer">Join as observer</a></p>
+                        {% endif %}
+                    </div>
+                </div>
+            {% else %}
+                <div class="card room-details">
+                    <div class="card-body">
+                        <h5 class="card-title">Szczegóły Pokoju</h5>
+                        <p class="card-text">
+                            Wybierz pokój z listy, aby zobaczyć szczegóły
+                        </p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
 {% endblock %}

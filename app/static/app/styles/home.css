@@ -1,0 +1,27 @@
+.main-content {
+    background: url('../img/pokerbg_generated.jpg') no-repeat center center;
+    background-size: cover;
+    color: white;
+    height: calc(100vh - 56px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    text-align: center;
+}
+
+.main-content h1, .main-content p, .main-content button {
+    opacity: 0;
+    animation: fadeIn 1s ease-out forwards;
+
+}
+
+.main-content h1 {
+    animation-delay: 0.5s;
+}
+.main-content p {
+    animation-delay: 1s;
+}
+.main-content button {
+    animation-delay: 1.5s;
+}
