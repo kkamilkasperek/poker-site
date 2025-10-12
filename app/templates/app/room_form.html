@@ -1,8 +1,99 @@
 {% extends 'main.html' %}
+{% load static %}
 {% block content %}
-    <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit" value="Create room">
-    </form>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container my-5">
+            <div class="row justify-content-center">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title text-center">Create new room</h5>
+                            <form method="POST">
+                                {% csrf_token %}
+                                <div class="form-group">
+                                    <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+                                    {{ form.name }}
+                                    {% if form.name.errors %}
+                                        <div class="text-danger">
+                                            {{ form.name.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="form-group">
+                                    <label for="{{ form.blinds_level.id_for_label }}">{{ form.blinds_level.label }}</label>
+                                    {{ form.blinds_level }}
+                                    {% if form.blinds_level.errors %}
+                                        <div class="text-danger">
+                                            {{ form.blinds_level.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="form-group">
+                                    <label for="{{ form.max_players.id_for_label }}">{{ form.max_players.label }}</label>
+                                    {{ form.max_players }}
+                                    {% if form.max_players.errors %}
+                                        <div class="text-danger">
+                                            {{ form.max_players.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="form-group">
+                                    <label>{{ form.is_private.label }}</label>
+                                    {% for radio in form.is_private %}
+                                    <div class="form-check">
+                                        {{ radio.tag }}
+                                        <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                                    </div>
+                                    {% endfor %}
+                                    {% if form.is_private.errors %}
+                                        <div class="text-danger">
+                                            {{ form.is_private.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="form-group" id="passwordField" style="display: none;">
+                                    <label for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
+                                    {{ form.password }}
+                                    {% if form.password.errors %}
+                                        <div class="text-danger">
+                                            {{ form.password.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-block">Create room</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const radioButtons = document.querySelectorAll('input[name="{{ form.is_private.name }}"]');
+            const passwordField = document.getElementById('passwordField');
+            const passwordInput = document.getElementById('{{ form.password.id_for_label }}');
+
+            radioButtons.forEach(radio => {
+                radio.addEventListener('change', function () {
+                    if (this.value === 'True') {
+                        passwordField.style.display = 'block';
+                        passwordInput.required = true;
+                    } else {
+                        passwordField.style.display = 'none';
+                        passwordInput.required = false;
+                    }
+                });
+
+                // Sprawdź stan początkowy
+                if (radio.checked && radio.value === 'True') {
+                    passwordField.style.display = 'block';
+                }
+            });
+        });
+    </script>
+
 {% endblock %}

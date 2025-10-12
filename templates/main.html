@@ -8,17 +8,19 @@
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
     <link href="{% static 'app/styles/navbar.css' %}" rel="stylesheet">
+    <link href="{% static 'app/styles/footer.css' %}" rel="stylesheet">
+    <link href="{% static 'app/styles/style.css' %}" rel="stylesheet">
     {% if page == 'home' %}
         <link href="{% static 'app/styles/home.css' %}" rel="stylesheet">
-    {% endif %}
-    <link href="{% static 'app/styles/footer.css' %}" rel="stylesheet">
-    {% if page == 'login' %}
+    {% elif page == 'login' %}
         <link href="{% static 'app/styles/login_register.css' %}" rel="stylesheet">
-    {% endif %}
-    <link href="{% static 'app/styles/style.css' %}" rel="stylesheet">
-    {% if page == 'rooms' %}
+    {% elif  page == 'rooms' %}
         <link href="{% static 'app/styles/rooms.css' %}" rel="stylesheet">
-    {% endif %}
+    {% elif  page == 'create_room' %}
+        <link href="{% static 'app/styles/room_form.css' %}" rel="stylesheet">
+    {% elif  page == 'room' %}
+        <link href="{% static 'app/styles/table.css' %}" rel="stylesheet">
+     {% endif %}
 </head>
 <body>
     {% include 'navbar.html' %}

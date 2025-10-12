@@ -58,7 +58,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background: url("img/dupkso.png") no-repeat center center;
+    /*background: url("img/dupkso.png") no-repeat center center;*/
     background-size: contain;
     width: 50%;
     height: 20%;
@@ -95,3 +95,17 @@
     width: auto;
     margin: 0 10px;
 }
+
+.seat {
+    position: absolute;
+    transform: translate(-50%, -50%);
+}
+
+#seat-0 { top: 10%; left: 50%; }
+#seat-1 { top: 25%; left: 80%; }
+#seat-2 { top: 50%; left: 90%; }
+#seat-3 { top: 75%; left: 80%; }
+#seat-4 { top: 90%; left: 50%; }
+#seat-5 { top: 75%; left: 20%; }
+#seat-6 { top: 50%; left: 10%; }
+#seat-7 { top: 25%; left: 20%; }

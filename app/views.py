@@ -135,8 +135,9 @@ def joinRoom(request, room_id):
         "small_blind": room.blinds_level // 2,
         "role": role,
         "seat_range": range(room.max_players),
+        "page": "room"
     }
-    return render(request, 'app/room.html', context)
+    return render(request, 'app/room_styled.html', context)
 
 def deleteRoom(request, room_id):
     room = get_object_or_404(PokerRoom, id=room_id)

@@ -49,9 +49,38 @@ class RoomForm(forms.ModelForm):
         model = PokerRoom
         fields = ["name", "blinds_level", "max_players", "is_private", "password"]
         widgets = {
-            "password" : forms.PasswordInput(),
-            "is_private" : forms.CheckboxInput(),
+            "name" : forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Room Name'
+            }),
+            "blinds_level" : forms.Select(attrs={
+                'class': 'form-control',
+            }),
+            "max_players" : forms.Select(attrs={
+                'class': 'form-control',
+            }),
+            "is_private" : forms.RadioSelect(choices=[
+                (False, 'Public'),
+                (True, 'Private')
+            ], attrs={
+                'class': 'form-check-input',
+            }),
+            "password" : forms.PasswordInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Password',
+            }),
         }
+        labels = {
+            "name": "Room Name",
+            "blinds_level": "Blinds Level",
+            "max_players": "Max Players",
+            "is_private": "Room Type",
+            "password": "Password"
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['password'].required = False
 
 
     def clean(self):
