@@ -1,80 +1,72 @@
 {% extends 'main.html' %}
 {% load static %}
 {% block content %}
-    <head>
-        <link rel="stylesheet" href="{% static 'app/styles/room.styles' %}">
-    </head>
-    <div class="room-info">
+<!-- Pasek informacji o pokoju -->
+<div class="container mt-3">
+    <div class="room-info d-flex justify-content-between align-items-center bg-dark p-3 rounded">
         <div>
-            <h5>{{ room.name }}</h5>
-            <p id="players-count">Ilość graczy <span id="current-players-count">{{ room.players.all.count }}</span>/{{ room.max_players }}</p>
+            <h5 class="mb-0">{{ room.name }}</h5>
+            <p class="mb-0">Ilość graczy:<span id="current-players-count">{{ room.players.all.count }}</span> / {{ room.max_players }}</p>
         </div>
         <div>
-            <h5>Poziom ciemnych</h5>
-            <p>{{ small_blind }} / {{ room.blinds_level }}</p>
+            <h5 class="mb-0">Poziom ciemnych</h5>
+            <p class="mb-0"> {{ small_blind }} / {{ room.blinds_level }}</p>
         </div>
-        <button id="entry-button">Odejdź/Dołącz</button>
+        <button id="entry-button" class="btn btn-success">Dołącz/Odejdź</button>
         <div id="acting-player"></div>
         <div>Pula: <span id="pot-size"></span></div>
-{#        {% if role == 'participant' %}#}
-{#            <button>Odejdź</button>#}
-{#        {% else %}#}
-{#            <button>Dołącz</button>#}
-{#        {% endif %}#}
     </div>
+</div>
 
-    <div>
-        {% if messages %}
-            <div class="messages">
-                {% for message in messages %}
-                    <p>{{ message }}</p>
-                {% endfor %}
-            </div>
-        {% endif %}
-    </div>
+<div>
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
 
-    <div id="table">
 
-         <div id="board-cards"></div>
-
+<!-- Main Content -->
+<div class="main-content">
+    <div id="table" class="poker-table">
         {% for seat_number in seat_range %}
-        	<div id="seat-{{ seat_number }}" class="seat">
-                <hr>
-                Pozycja: {{ seat_number }} <br>
-                (wolne miejsce)
+            <div id="seat-{{ seat_number }}" class="seat player-container">
+                <div class="player-cards"></div>
+                <div class="player-info"></div>
             </div>
-        {% endfor %}
+         {% endfor %}
 
+        <div id="board-cards" class="center-cards">
+        </div>
     </div>
-
-
     <div class="action-panel">
-    <hr>
         <div class="info d-flex justify-content-between align-items-center mb-2" hidden>
             <div>
-                <strong>Żetony:</strong> <span id="playerChips"></span>
+                <strong>Chips:</strong> <span id="playerChips"></span>
             </div>
             <div>
-                <strong>Aktualny układ:</strong> <span id="playerHand"></span>
+                <strong>Your hand:</strong> <span id="playerHand"></span>
             </div>
         </div>
-        <div class="action d-flex justify-content-between" hidden>
-            <button class="check btn btn-primary">Check</button>
+        <div class="action justify-content-between" hidden>
             <button class="fold btn btn-danger">Fold</button>
+            <button class="check btn btn-primary">Check</button>
             <button class="call btn btn-success">Call</button>
             <button class="raise btn btn-warning">Raise</button>
             <input type="range" min="0" step="1" class="raise-slider form-control-range mx-2" style="flex: 1;">
             <input type="number" min="0" class="raise-input form-control" placeholder="Kwota" style="width: 100px;">
         </div>
     </div>
-
-
-    {% if user == room.host %}
-        <a href="{% url 'delete_room' room.id %}">Usuń</a>
-     {% endif %}
+</div>
+{% if user == room.host %}
+    <a href="{% url 'delete_room' room.id %}">Delete</a>
+ {% endif %}
 
     <script>
-        const roomId = "{{ room.id }}";
+       const roomId = "{{ room.id }}";
         const role = "{{ role }}";
         const maxPlayers = {{ room.max_players }};
 
@@ -90,5 +82,4 @@
         });
     </script>
     <script src="{% static 'app/js/websocket.js' %}"></script>
-
 {% endblock %}

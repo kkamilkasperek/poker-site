@@ -18,9 +18,10 @@ from django.contrib import admin
 from django.urls import path, include
 
 
-
-
 urlpatterns = [
     path('', include('app.urls')),
     path('admin/', admin.site.urls),
 ]
+
+# Custom error handlers
+handler404 = 'app.views.handler_404'

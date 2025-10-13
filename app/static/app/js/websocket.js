@@ -1,6 +1,67 @@
 const protocol = location.protocol === "https:" ? "wss" : "ws";
 const socket = new WebSocket(`${protocol}://${location.host}/ws/room/${roomId}/?role=${role}`);
 
+const playingCards = {
+    '2 of Spades': '/static/app/img/playing_cards/2_of_spades.png',
+    '3 of Spades': '/static/app/img/playing_cards/3_of_spades.png',
+    '4 of Spades': '/static/app/img/playing_cards/4_of_spades.png',
+    '5 of Spades': '/static/app/img/playing_cards/5_of_spades.png',
+    '6 of Spades': '/static/app/img/playing_cards/6_of_spades.png',
+    '7 of Spades': '/static/app/img/playing_cards/7_of_spades.png',
+    '8 of Spades': '/static/app/img/playing_cards/8_of_spades.png',
+    '9 of Spades': '/static/app/img/playing_cards/9_of_spades.png',
+    '10 of Spades': '/static/app/img/playing_cards/10_of_spades.png',
+    'Jack of Spades': '/static/app/img/playing_cards/jack_of_spades.png',
+    'Queen of Spades': '/static/app/img/playing_cards/queen_of_spades.png',
+    'King of Spades': '/static/app/img/playing_cards/king_of_spades.png',
+    'Ace of Spades': '/static/app/img/playing_cards/ace_of_spades.png',
+
+    '2 of Hearts': '/static/app/img/playing_cards/2_of_hearts.png',
+    '3 of Hearts': '/static/app/img/playing_cards/3_of_hearts.png',
+    '4 of Hearts': '/static/app/img/playing_cards/4_of_hearts.png',
+    '5 of Hearts': '/static/app/img/playing_cards/5_of_hearts.png',
+    '6 of Hearts': '/static/app/img/playing_cards/6_of_hearts.png',
+    '7 of Hearts': '/static/app/img/playing_cards/7_of_hearts.png',
+    '8 of Hearts': '/static/app/img/playing_cards/8_of_hearts.png',
+    '9 of Hearts': '/static/app/img/playing_cards/9_of_hearts.png',
+    '10 of Hearts': '/static/app/img/playing_cards/10_of_hearts.png',
+    'Jack of Hearts': '/static/app/img/playing_cards/jack_of_hearts.png',
+    'Queen of Hearts': '/static/app/img/playing_cards/queen_of_hearts.png',
+    'King of Hearts': '/static/app/img/playing_cards/king_of_hearts.png',
+    'Ace of Hearts': '/static/app/img/playing_cards/ace_of_hearts.png',
+
+    '2 of Diamonds': '/static/app/img/playing_cards/2_of_diamonds.png',
+    '3 of Diamonds': '/static/app/img/playing_cards/3_of_diamonds.png',
+    '4 of Diamonds': '/static/app/img/playing_cards/4_of_diamonds.png',
+    '5 of Diamonds': '/static/app/img/playing_cards/5_of_diamonds.png',
+    '6 of Diamonds': '/static/app/img/playing_cards/6_of_diamonds.png',
+    '7 of Diamonds': '/static/app/img/playing_cards/7_of_diamonds.png',
+    '8 of Diamonds': '/static/app/img/playing_cards/8_of_diamonds.png',
+    '9 of Diamonds': '/static/app/img/playing_cards/9_of_diamonds.png',
+    '10 of Diamonds': '/static/app/img/playing_cards/10_of_diamonds.png',
+    'Jack of Diamonds': '/static/app/img/playing_cards/jack_of_diamonds.png',
+    'Queen of Diamonds': '/static/app/img/playing_cards/queen_of_diamonds.png',
+    'King of Diamonds': '/static/app/img/playing_cards/king_of_diamonds.png',
+    'Ace of Diamonds': '/static/app/img/playing_cards/ace_of_diamonds.png',
+
+    '2 of Clubs': '/static/app/img/playing_cards/2_of_clubs.png',
+    '3 of Clubs': '/static/app/img/playing_cards/3_of_clubs.png',
+    '4 of Clubs': '/static/app/img/playing_cards/4_of_clubs.png',
+    '5 of Clubs': '/static/app/img/playing_cards/5_of_clubs.png',
+    '6 of Clubs': '/static/app/img/playing_cards/6_of_clubs.png',
+    '7 of Clubs': '/static/app/img/playing_cards/7_of_clubs.png',
+    '8 of Clubs': '/static/app/img/playing_cards/8_of_clubs.png',
+    '9 of Clubs': '/static/app/img/playing_cards/9_of_clubs.png',
+    '10 of Clubs': '/static/app/img/playing_cards/10_of_clubs.png',
+    'Jack of Clubs': '/static/app/img/playing_cards/jack_of_clubs.png',
+    'Queen of Clubs': '/static/app/img/playing_cards/queen_of_clubs.png',
+    'King of Clubs': '/static/app/img/playing_cards/king_of_clubs.png',
+    'Ace of Clubs': '/static/app/img/playing_cards/ace_of_clubs.png',
+
+    'reverse': '/static/app/img/playing_cards/reverse2-copy.png',
+};
+
+
 const currentActionHandlers = {
     fold: null,
     check: null,
@@ -86,10 +147,29 @@ socket.onerror = (error) => {
     paragraph.textContent = `Połączenie websocket nie powiodło się`;
     messagesDiv.appendChild(paragraph);
     console.error("WebSocket error:", error);
+
+    setTimeout(() => {
+        window.location.href = '/rooms';
+    }, 4000);
 }
 
+// const relativePosition = (position) => {
+//     return position - yourPosition >= 0 ? position - yourPosition : position - yourPosition + maxPlayers;
+// }
+
 const relativePosition = (position) => {
-    return position - yourPosition >= 0 ? position - yourPosition : position - yourPosition + maxPlayers;
+    const mapping = {
+        0: 0,
+        1: 4,
+        2: 2,
+        3: 6,
+        4: 1,
+        5: 7,
+        6: 3,
+        7: 5
+    }
+    const shift = maxPlayers - mapping[yourPosition];
+    return (mapping[position] + shift) % maxPlayers;
 }
 
 /* Initialize players on the board on relative positions
@@ -100,63 +180,76 @@ const initParticipant = (players) => {
     const playerCountDiv = document.getElementById("current-players-count");
     playerCountDiv.textContent = `${numberOfPlayers}`;
     const entryButton = document.getElementById("entry-button");
-    entryButton.textContent = "Odejdź";
+    entryButton.textContent = "Leave";
     entryButton.addEventListener('click', leaveGame);
     for (const pos in players) {
         const relativePos = relativePosition(pos);
         const playerName = players[pos].username;
         const playerCards = players[pos].cards;
-        let cardsHTML = '';
+        let card1, card2;
         if (playerCards) {
-            cardsHTML = playerCards.join(', ');
+            // cardsHTML = playerCards.join(', ');
+            card1 = document.createElement("img");
+            card1.src = playingCards[playerCards[0]];
+            card1.alt = playerCards[0];
+            card2 = document.createElement("img");
+            card2.src = playingCards[playerCards[1]];
+            card2.alt = playerCards[1];
         }
         const seatDiv = document.getElementById(`seat-${relativePos}`);
         if (seatDiv) {
-            seatDiv.innerHTML = `<hr>
-                                Pozycja: ${relativePos} <br>
-                                ${playerName} <br>
-                                <span class="cards">${cardsHTML}</span> <br>
-                                <span class="chips">${players[pos].chip_count}</span> <br>
-                                <span class="bet"></span>`;
+            const playerCardsDiv = seatDiv.querySelector('.player-cards');
+            const playerInfoDiv = seatDiv.querySelector('.player-info');
+
+            if (card1 && card2) {
+                playerCardsDiv.appendChild(card1);
+                playerCardsDiv.appendChild(card2);
+            }
+            playerInfoDiv.innerHTML = `
+                ${playerName}
+                <span class="chips">${players[pos].chip_count}</span>
+                <span class="bet"></span>`;
         }
     }
 
     const actionPanel = document.querySelector(".action-panel");
     actionPanel.querySelector("#playerChips").textContent = `${players[yourPosition].chip_count}`;
-
     actionPanel.querySelector("div").hidden = false;
-
-    // // temporary solution for initation game
-    // if (numberOfPlayers >= 2) {
-    //     socket.send(JSON.stringify(
-    //         {
-    //             type: "start_game",
-    //         }
-    //     ))
-    // }
 }
 
 const initObserver = (players) => {
     const playerCountDiv = document.getElementById("current-players-count");
     playerCountDiv.textContent = `${Object.keys(players).length}`;
     const entryButton = document.getElementById("entry-button");
-    entryButton.textContent = "Dołącz";
+    entryButton.textContent = "Join";
     entryButton.addEventListener('click', joinGame);
     for (const pos in players) {
         const playerName = players[pos].username;
         const playerCards = players[pos].cards;
-        let cardsHTML = '';
+        let card1, card2;
+
         if (playerCards) {
-            cardsHTML = playerCards.join(', ');
+            // cardsHTML = playerCards.join(', ');
+            card1 = document.createElement("img");
+            card1.src = playingCards[playerCards[0]];
+            card1.alt = playerCards[0];
+            card2 = document.createElement("img");
+            card2.src = playingCards[playerCards[1]];
+            card2.alt = playerCards[1];
         }
         const seatDiv = document.getElementById(`seat-${pos}`);
         if (seatDiv) {
-            seatDiv.innerHTML = `<hr>
-                                Pozycja: ${pos} <br>
-                                ${playerName} <br>
-                                <span class="cards">${cardsHTML}</span> <br>
-                                <span class="chips">${players[pos].chip_count}</span> <br>
-                                <span class="bet"></span>`;
+            const playerCardsDiv = seatDiv.querySelector('.player-cards');
+            const playerInfoDiv = seatDiv.querySelector('.player-info');
+
+            if (card1 && card2) {
+                playerCardsDiv.appendChild(card1);
+                playerCardsDiv.appendChild(card2);
+            }
+            playerInfoDiv.innerHTML = `
+                ${playerName}
+                <span class="chips">${players[pos].chip_count}</span>
+                <span class="bet"></span>`;
         }
     }
 }
@@ -181,9 +274,10 @@ const deletePlayer = (position) => {
     const relativePos = relativePosition(position);
     const seatDiv = document.getElementById(`seat-${relativePos}`);
     if (seatDiv) {
-        seatDiv.innerHTML = `<hr>
-                            Pozycja: ${relativePos} <br>
-                            (wolne miejsce)`;
+        const playerCardsDiv = seatDiv.querySelector('.player-cards');
+        const playerInfoDiv = seatDiv.querySelector('.player-info');
+        playerCardsDiv.innerHTML = ``;
+        playerInfoDiv.textContent = ``;
     }
     const playerCountDiv = document.getElementById("current-players-count");
     const currentCount = parseInt(playerCountDiv.textContent);
@@ -194,12 +288,14 @@ const newPlayer = (position, username, chip_count) => {
     const relativePos = relativePosition(position);
     const seatDiv = document.getElementById(`seat-${relativePos}`);
     if (seatDiv) {
-        seatDiv.innerHTML = `<hr>
-                            Pozycja: ${relativePos} <br>
-                            ${username} <br>
-                             <span class="cards"></span> <br>
-                             <span class="chips">${chip_count}</span> <br>
-                             <span class="bet"></span>`;
+        const playerCardsDiv = seatDiv.querySelector('.player-cards');
+        const playerInfoDiv = seatDiv.querySelector('.player-info');
+
+        playerCardsDiv.innerHTML = ``;
+        playerInfoDiv.innerHTML = `
+            ${username}
+            <span class="chips">${chip_count}</span>
+            <span class="bet"></span>`;
     }
     const playerCountDiv = document.getElementById("current-players-count");
     const currentCount = parseInt(playerCountDiv.textContent);
@@ -231,9 +327,15 @@ const dealtCards = (cards, active_positions) => {
     /* Show cards dealt to player and simulate dealing hidden cards to opponents */
     const seatDiv = document.getElementById(`seat-0`);
     if (seatDiv) {
-        const cardsSpan = seatDiv.querySelector(".cards");
-        if (cardsSpan) {
-            cardsSpan.textContent = cards.join(', ');
+        const playerCardsDiv = seatDiv.querySelector(".player-cards");
+        if (playerCardsDiv) {
+            // cardsSpan.textContent = cards.join(', ');
+            cards.forEach(card => {
+                const img = document.createElement("img");
+                img.src = playingCards[card];
+                img.alt = card;
+                playerCardsDiv.appendChild(img);
+            })
         }
     }
     for (const pos of active_positions) {
@@ -241,9 +343,15 @@ const dealtCards = (cards, active_positions) => {
             const relativePos = relativePosition(pos);
             const seatDiv = document.getElementById(`seat-${relativePos}`);
             if (seatDiv) {
-                const cardsSpan = seatDiv.querySelector(".cards");
-                if (cardsSpan) {
-                    cardsSpan.textContent = 'XX, XX';
+                const playerCardsDiv = seatDiv.querySelector(".player-cards");
+                if (playerCardsDiv) {
+                    playerCardsDiv.innerHTML = ``;
+                    for (let i = 0; i < 2; i++) {
+                        const img = document.createElement("img")
+                        img.src = '/static/app/img/playing_cards/reverse2-copy.png';
+                        img.alt = 'reverse';
+                        playerCardsDiv.appendChild(img);
+                    }
                 }
             }
         }
@@ -252,7 +360,14 @@ const dealtCards = (cards, active_positions) => {
 
 const boardCards = (cards) => {
     const boardDiv = document.getElementById("board-cards");
-    boardDiv.textContent = cards.join(', ');
+    for (const card of cards) {
+        const cardDiv = document.createElement("div");
+        cardDiv.classList.add("board-card");
+        cardDiv.innerHTML = `
+            <img src="${playingCards[card]}" alt="${card}">
+        `;
+        boardDiv.appendChild(cardDiv);
+    }
 }
 
 const playerTurn = (username) => {
@@ -272,6 +387,7 @@ const yourTurn = (current_bet, your_bet, your_chip_count, pot) => {
     const actionPanel = document.querySelector(".action-panel");
     const buttonsDiv = actionPanel.querySelector(".action");
     buttonsDiv.hidden = false;
+    buttonsDiv.classList.add("d-flex");
     actionPanel.querySelector("#playerChips").textContent = your_chip_count || '';
 
     // activate buttons
@@ -317,6 +433,7 @@ const yourTurn = (current_bet, your_bet, your_chip_count, pot) => {
             action: "fold",
         }));
         buttonsDiv.hidden = true;
+        buttonsDiv.classList.remove("d-flex");
     };
     foldButton.addEventListener('click', currentActionHandlers.fold, {once: true});
 
@@ -328,6 +445,7 @@ const yourTurn = (current_bet, your_bet, your_chip_count, pot) => {
                 amount: 0,
             }));
             buttonsDiv.hidden = true;
+            buttonsDiv.classList.remove("d-flex");
         };
         checkButton.addEventListener('click', currentActionHandlers.check, {once: true});
         checkButton.disabled = false;
@@ -341,6 +459,7 @@ const yourTurn = (current_bet, your_bet, your_chip_count, pot) => {
                 amount: current_bet - your_bet,
             }));
             buttonsDiv.hidden = true;
+            buttonsDiv.classList.remove("d-flex");
         }
         callButton.addEventListener('click', currentActionHandlers.call, {once: true});
         callButton.disabled = false;
@@ -355,6 +474,7 @@ const yourTurn = (current_bet, your_bet, your_chip_count, pot) => {
                         amount: raiseAmount,
                     }));
                     buttonsDiv.hidden = true;
+                    buttonsDiv.classList.remove("d-flex");
                 } else {
                     alert(`Nieprawidłowa kwota podbicia. Kwota musi być pomiędzy ${raiseInput.min} a ${raiseInput.max}.`);
                 }
@@ -373,6 +493,7 @@ const yourTurn = (current_bet, your_bet, your_chip_count, pot) => {
                 amount: your_chip_count,
             }));
             buttonsDiv.hidden = true;
+            buttonsDiv.classList.remove("d-flex");
         }
         callButton.textContent = `All in (${your_chip_count})`;
         callButton.addEventListener('click', currentActionHandlers.call, {once: true});
@@ -385,7 +506,7 @@ const clearBetting = () => {
     actingPlayerInfo.textContent = ``;
 
     const tableDiv = document.getElementById("table");
-    for (const seat of tableDiv.children) {
+    for (const seat of tableDiv.querySelectorAll('.seat')) {
         const betSpan = seat.querySelector(".bet");
         if (betSpan) {
             betSpan.textContent = ``;
@@ -457,15 +578,17 @@ const reset = (chip_counts) => {
     const tableDiv = document.getElementById("table");
     const actingPlayerInfo = document.querySelector(".room-info #acting-player");
     const playerHandDiv = actionPanel.querySelector("#playerHand");
+
     actingPlayerInfo.textContent = ``;
     playerHandDiv.textContent = ``;
     buttonsDiv.hidden = true;
     boardDiv.textContent = ``;
     potDiv.textContent = ``;
-    for (const seat of tableDiv.children) {
-        const cardsSpan = seat.querySelector(".cards");
-        if (cardsSpan) {
-            cardsSpan.textContent = ``;
+
+    for (const seat of tableDiv.querySelectorAll('.seat')) {
+        const playerCardsDiv = seat.querySelector(".player-cards");
+        if (playerCardsDiv) {
+            playerCardsDiv.innerHTML = ``;
         }
         const betSpan = seat.querySelector(".bet");
         if (betSpan) {

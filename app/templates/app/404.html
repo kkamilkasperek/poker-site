@@ -1,0 +1,13 @@
+{% extends 'main.html' %}
+{% block content %}
+    <!-- Main Content -->
+    <div class="main-content">
+        <h1>404 - Strona nie znaleziona</h1>
+        <p>Przepraszamy, ale strona której szukasz nie istnieje.</p>
+        <a href="{% url 'index' %}"><button class="btn btn-primary btn-lg">Wróć do strony głównej</button></a>
+        {% if user.is_authenticated %}
+            <a href="{% url 'rooms' %}"><button class="btn btn-secondary btn-lg ml-2">Przejdź do pokoi</button></a>
+        {% endif %}
+    </div>
+{% endblock %}
+

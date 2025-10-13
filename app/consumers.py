@@ -22,12 +22,24 @@ class PokerConsumer(AsyncJsonWebsocketConsumer):
 
         if self.role not in ['participant', 'observer']:
             await self.close(code=4000)
+            return
+
+        # Check if room exists in database
+        room_exists = await self.check_room_exists()
+        if not room_exists:
+            await self.close(code=4004)
+            return
+
         # add user to room group
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         # add user to personal group
         await self.channel_layer.group_add(self.user_group_name,self.channel_name)
 
         self.poker_room = poker_games.get(int(self.room_id))
+
+        if self.poker_room is None:
+            await self.close(code=4005)
+            return
 
         if self.poker_room.message_callback is None:
             self.poker_room.message_callback = self.broadcast_game_message
@@ -39,16 +51,19 @@ class PokerConsumer(AsyncJsonWebsocketConsumer):
         await self.create_player_game()
 
     async def disconnect(self, code):
-        if self.role == 'participant':
-            player_pos = self.poker_room.get_player(self.user.username)[0]
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    'type': 'player_left',
-                    'position': player_pos,
-                    'sender_channel': self.channel_name,
-                }
-            )
+        # Check if poker_room still exists
+        if hasattr(self, 'poker_room') and self.poker_room is not None and self.role == 'participant':
+            player_info = self.poker_room.get_player(self.user.username)
+            if player_info:
+                player_pos = player_info[0]
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        'type': 'player_left',
+                        'position': player_pos,
+                        'sender_channel': self.channel_name,
+                    }
+                )
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
         await self.channel_layer.group_discard(self.user_group_name, self.channel_name)
 
@@ -167,9 +182,15 @@ class PokerConsumer(AsyncJsonWebsocketConsumer):
 
     async def remove_player_game(self):
         if self.role == 'participant':
-            position = poker_games.get(int(self.room_id)).remove_player(self.user.username)
+            game = poker_games.get(int(self.room_id))
+            if game is not None:
+                position = game.remove_player(self.user.username)
             # if position is None: player can be already removed
             #     raise ValueError("Player not found in the game.")
+
+    @database_sync_to_async
+    def check_room_exists(self):
+        return PokerRoom.objects.filter(pk=self.room_id).exists()
 
     @database_sync_to_async
     def update_or_create_player_db(self):
@@ -193,11 +214,11 @@ class PokerConsumer(AsyncJsonWebsocketConsumer):
             return
         player = Player.objects.filter(pk=(self.user.id , self.room_id)).first()
 
+        if player:
+            player.delete()
+
         # done in separate function
         '''if self.role == 'participant':
             position = poker_games[room.id].remove_player(player)
             if position is None:
                 raise ValueError("Player not found in the game.")'''
-        player.delete()
-
-

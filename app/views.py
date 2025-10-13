@@ -16,6 +16,10 @@ from .PokerGame import PokerGame, poker_games
 def index(request):
     return render(request, 'app/index.html', {"page": "home"})
 
+def handler_404(request, exception):
+    """Custom 404 error handler"""
+    return render(request, 'app/404.html', {"page": "home"}, status=404)
+
 def errorMessage(request):
     return render(request, 'app/errors.html', status=403)
 
@@ -111,8 +115,6 @@ def createRoom(request):
             room.save()
             poker_games[room.id] = PokerGame(room.id, big_blind=room.blinds_level,max_players=room.max_players)
             return redirect(f"{reverse("join_room", kwargs={'room_id': room.id})}?role=participant")
-        else:
-            messages.error(request, "Błąd podczas tworzenia pokoju. Sprawdź poprawność danych.")
     else:
         form = RoomForm()
     return render(request, 'app/room_form.html', {"form": form, "page": "create_room"})
@@ -137,7 +139,7 @@ def joinRoom(request, room_id):
         "seat_range": range(room.max_players),
         "page": "room"
     }
-    return render(request, 'app/room_styled.html', context)
+    return render(request, 'app/room.html', context)
 
 def deleteRoom(request, room_id):
     room = get_object_or_404(PokerRoom, id=room_id)
