@@ -1,67 +1,46 @@
 {% load static %}
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark">
-    <a class="navbar-brand" href="{% url 'index' %}">
-        <img src="{% static 'app/img/dupkso.png' %}" alt="Logo" style="height: 40px;">
-    </a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav mx-auto">
-            <li class="nav-item">
-                {% if page == 'home' %}
-                    <a class="nav-link active" href="{% url 'index' %}">Home</a>
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'index' %}" style="width: 200px;">
+            <img src="{% static 'app/img/dupkso.png' %}" alt="Logo" style="height: 40px;">
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mx-auto">
+                <li class="nav-item">
+                    <a class="nav-link {% if page == 'home' %}active{% endif %}" href="{% url 'index' %}">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if page == 'rooms' %}active{% endif %}" href="{% url 'rooms' %}">Rooms</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Bridge</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Contact</a>
+                </li>
+            </ul>
+            <div class="d-flex justify-content-end" style="width: 200px;">
+                {% if user.is_authenticated %}
+                    <div class="dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <img src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y" alt="Avatar" class="rounded-circle" style="width: 40px; height: 40px; margin-right: 10px;">
+                            <span>{{ user.username }}</span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+                            <a class="dropdown-item" href="#">Profil</a>
+                            <a class="dropdown-item" href="#">Ustawienia</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{% url 'logout' %}">Wyloguj się</a>
+                        </div>
+                    </div>
                 {% else %}
-                    <a class="nav-link" href="{% url 'index' %}">Home</a>
+                    <a href="{% url 'login' %}"><button class="btn btn-primary">Zaloguj się</button></a>
                 {% endif %}
-            </li>
-            <li class="nav-item">
-                {% if page == 'rooms' %}
-                    <a class="nav-link active" href="{% url 'rooms' %}">Pokoje</a>
-                {% else %}
-                    <a class="nav-link" href="{% url 'rooms' %}">Pokoje</a>
-                {% endif %}
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#">Usługi</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#">Kontakt</a>
-            </li>
-        </ul>
-        {% if user.is_authenticated %}
-                <!--    Dla zalogowanego    -->
-            <!-- Dropdown for logged-in user -->
-            <div class="dropdown">
-                <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <img src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y" alt="Avatar" class="rounded-circle" style="width: 40px; height: 40px; margin-right: 10px;">
-                    <span>{{ user.username }}</span>
-                </a>
-                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
-                    <a class="dropdown-item" href="#">Profil</a>
-                    <a class="dropdown-item" href="#">Ustawienia</a>
-                    <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="{% url 'logout' %}">Wyloguj się</a>
-                </div>
             </div>
-        {% else %}
-             <!--        Dla niezalogowanego gościa      -->
-        <a href="{% url 'login' %}"><button class="btn btn-primary">Zaloguj się</button></a>
-        {% endif %}
+        </div>
     </div>
 </nav>
-
-{#<nav>#}
-{#    <h3><a href="{% url 'index' %}">LOGO</a></h3>#}
-{#    <ul>#}
-{#        <li><a href="{% url 'index' %}">Home</a></li>#}
-{#        <li><a href="{% url 'rooms' %}">Pokoje</a></li>#}
-{#    </ul>#}
-{#    {% if user.is_authenticated %}#}
-{#        <span>Welcome back {{ user.username }}</span>#}
-{#        <a href="{% url 'logout' %}">Logout</a>#}
-{#    {% else %}#}
-{#        <a href="{% url 'login' %}">Login</a>#}
-{#    {% endif %}#}
-{#</nav>#}

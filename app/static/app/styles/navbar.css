@@ -2,6 +2,12 @@
     background-color: #1f1f1f;
     z-index: 1000;
 }
+
+.navbar > .container-fluid {
+    background-color: #1f1f1f;
+    background-image: none;
+}
+
 .navbar-brand, .nav-link, .btn-primary {
     color: #ffffff;
 }
