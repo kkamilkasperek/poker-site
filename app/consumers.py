@@ -106,7 +106,7 @@ class PokerConsumer(AsyncJsonWebsocketConsumer):
             if room_players[player_pos]['username'] != event['username'] and \
                 room_players[player_pos]['cards'] is not None:
                 room_players[player_pos] = room_players[player_pos].copy()
-                room_players[player_pos]['cards'] = ['XX', 'XX']
+                room_players[player_pos]['cards'] = ['reverse', 'reverse']
 
 
         if request_role == 'participant':

@@ -143,7 +143,7 @@ def joinRoom(request, room_id):
 
 def deleteRoom(request, room_id):
     room = get_object_or_404(PokerRoom, id=room_id)
-    if request.user == room.host:
+    if room and request.user == room.host:
         room.delete()
     else:
         messages.error(request, "Tylko gospodarz pokoju może go usunąć.")
