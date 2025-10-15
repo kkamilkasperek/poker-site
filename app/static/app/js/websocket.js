@@ -159,6 +159,7 @@ socket.onerror = (error) => {
 
 const relativePosition = (position) => {
     const mapping = {
+        "null": 0,
         0: 0,
         1: 4,
         2: 2,
@@ -224,6 +225,7 @@ const initObserver = (players) => {
     entryButton.textContent = "Join";
     entryButton.addEventListener('click', joinGame);
     for (const pos in players) {
+        const relativePos = relativePosition(pos);
         const playerName = players[pos].username;
         const playerCards = players[pos].cards;
         let card1, card2;
@@ -237,7 +239,7 @@ const initObserver = (players) => {
             card2.src = playingCards[playerCards[1]];
             card2.alt = playerCards[1];
         }
-        const seatDiv = document.getElementById(`seat-${pos}`);
+        const seatDiv = document.getElementById(`seat-${relativePos}`);
         if (seatDiv) {
             const playerCardsDiv = seatDiv.querySelector('.player-cards');
             const playerInfoDiv = seatDiv.querySelector('.player-info');
@@ -360,6 +362,7 @@ const dealtCards = (cards, active_positions) => {
 
 const boardCards = (cards) => {
     const boardDiv = document.getElementById("board-cards");
+    boardDiv.innerHTML = ``;
     for (const card of cards) {
         const cardDiv = document.createElement("div");
         cardDiv.classList.add("board-card");
@@ -549,9 +552,17 @@ const showdown = (hands) => {
         const hand = hands[position];
         const seatDiv = document.getElementById(`seat-${relativePos}`);
         if (seatDiv) {
-            const cardsSpan = seatDiv.querySelector(".cards");
-            if (cardsSpan) {
-                cardsSpan.textContent = hand.join(', ');
+            const hand1 = document.createElement("img");
+            hand1.src = playingCards[hand[0]];
+            hand1.alt = hand[0];
+            const hand2 = document.createElement("img");
+            hand2.src = playingCards[hand[1]];
+            hand2.alt = hand[1];
+            const playerCardsDiv = seatDiv.querySelector(".player-cards");
+            if (playerCardsDiv) {
+                playerCardsDiv.innerHTML = ``;
+                playerCardsDiv.appendChild(hand1);
+                playerCardsDiv.appendChild(hand2);
             }
         }
     }

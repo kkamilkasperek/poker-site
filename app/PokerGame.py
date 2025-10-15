@@ -146,6 +146,7 @@ class PokerGame:
     async def _setup_turn(self):
         self.board_cards.add(self.deck.deal(1))
         await self.notify_board_cards()
+        await self._calculate_players_hand_values()
         self.current_player_position = (self.dealer_position + 1) % len(self.players)
         state_result = await self._betting_round()
         if state_result == 'next_state':
@@ -156,6 +157,7 @@ class PokerGame:
     async def _setup_river(self):
         self.board_cards.add(self.deck.deal(1))
         await self.notify_board_cards()
+        await self._calculate_players_hand_values()
         self.current_player_position = (self.dealer_position + 1) % len(self.players)
         state_result = await self._betting_round()
         if state_result == 'next_state':
