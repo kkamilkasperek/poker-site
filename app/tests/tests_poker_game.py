@@ -478,3 +478,200 @@ class TestPokerGameHandEvaluation:
         
         result = poker_game._compare_hands(hand1, hand2)
         assert result == -1  # straight wins over pair
+
+
+class TestPokerGameSidePots:
+    """Test side pot functionality when players go all-in"""
+    
+    @pytest.mark.asyncio
+    async def test_all_in_player_wins_main_pot_only(self, mock_callbacks):
+        """Test that an all-in player with best hand only wins the main pot"""
+        game = PokerGame(id=1, big_blind=10, max_players=8)
+        game.message_callback = mock_callbacks['message_callback']
+        game.private_message_callback = mock_callbacks['private_message_callback']
+        
+        user1 = MockUser("player1")
+        user2 = MockUser("player2")
+        user3 = MockUser("player3")
+        
+        pos1 = game.add_player(user1)
+        pos2 = game.add_player(user2)
+        pos3 = game.add_player(user3)
+        
+        # Set specific chip counts
+        game.players[pos1]['chip_count'] = 100
+        game.players[pos2]['chip_count'] = 1000
+        game.players[pos3]['chip_count'] = 1000
+        
+        # Set up game state
+        game.game_state = 'river'
+        game.players[pos1]['active'] = True
+        game.players[pos2]['active'] = True
+        game.players[pos3]['active'] = True
+        
+        # Give players cards - P1 has best hand (Aces)
+        game.players[pos1]['cards'] = Stack()
+        game.players[pos1]['cards'].add([Card('Ace', 'Spades'), Card('Ace', 'Hearts')])
+        
+        game.players[pos2]['cards'] = Stack()
+        game.players[pos2]['cards'].add([Card('King', 'Spades'), Card('King', 'Hearts')])
+        
+        game.players[pos3]['cards'] = Stack()
+        game.players[pos3]['cards'].add([Card('Queen', 'Spades'), Card('Queen', 'Hearts')])
+        
+        # Set board cards
+        game.board_cards = Stack()
+        game.board_cards.add([Card('2', 'Spades'), Card('3', 'Hearts'), Card('7', 'Diamonds'), 
+                              Card('8', 'Clubs'), Card('9', 'Spades')])
+        
+        # Player 1 goes all-in with 100
+        game.player_bet(pos1, 100)
+        # Player 2 raises to 200
+        game.player_bet(pos2, 200)
+        # Player 3 calls 200
+        game.player_bet(pos3, 200)
+        
+        # Evaluate hands
+        remaining_players = game.get_not_folded_players()
+        hands = {}
+        for pos in remaining_players:
+            player = remaining_players[pos]
+            hands[pos] = game._evaluate_hand(player['cards'] + game.board_cards)
+        
+        # Call showdown logic
+        await game._handle_winner_with_hands(hands, remaining_players)
+        
+        # Player 1 should win main pot of 300 (100 from each player)
+        # Player 2 should win side pot of 200 (100 from P2 and P3)
+        assert game.players[pos1]['chip_count'] == 300
+        assert game.players[pos2]['chip_count'] == 1000  # 800 + 200
+        assert game.players[pos3]['chip_count'] == 800
+    
+    @pytest.mark.asyncio
+    async def test_non_all_in_player_wins_everything(self, mock_callbacks):
+        """Test that a non-all-in player with best hand wins both main and side pots"""
+        game = PokerGame(id=1, big_blind=10, max_players=8)
+        game.message_callback = mock_callbacks['message_callback']
+        game.private_message_callback = mock_callbacks['private_message_callback']
+        
+        user1 = MockUser("player1")
+        user2 = MockUser("player2")
+        user3 = MockUser("player3")
+        
+        pos1 = game.add_player(user1)
+        pos2 = game.add_player(user2)
+        pos3 = game.add_player(user3)
+        
+        # Set specific chip counts
+        game.players[pos1]['chip_count'] = 100
+        game.players[pos2]['chip_count'] = 1000
+        game.players[pos3]['chip_count'] = 1000
+        
+        # Set up game state
+        game.game_state = 'river'
+        game.players[pos1]['active'] = True
+        game.players[pos2]['active'] = True
+        game.players[pos3]['active'] = True
+        
+        # Give players cards - P2 has best hand (Aces)
+        game.players[pos1]['cards'] = Stack()
+        game.players[pos1]['cards'].add([Card('Queen', 'Spades'), Card('Queen', 'Hearts')])
+        
+        game.players[pos2]['cards'] = Stack()
+        game.players[pos2]['cards'].add([Card('Ace', 'Spades'), Card('Ace', 'Hearts')])
+        
+        game.players[pos3]['cards'] = Stack()
+        game.players[pos3]['cards'].add([Card('King', 'Spades'), Card('King', 'Hearts')])
+        
+        # Set board cards
+        game.board_cards = Stack()
+        game.board_cards.add([Card('2', 'Spades'), Card('3', 'Hearts'), Card('7', 'Diamonds'), 
+                              Card('8', 'Clubs'), Card('9', 'Spades')])
+        
+        # Player 1 goes all-in with 100
+        game.player_bet(pos1, 100)
+        # Player 2 raises to 200
+        game.player_bet(pos2, 200)
+        # Player 3 calls 200
+        game.player_bet(pos3, 200)
+        
+        # Evaluate hands
+        remaining_players = game.get_not_folded_players()
+        hands = {}
+        for pos in remaining_players:
+            player = remaining_players[pos]
+            hands[pos] = game._evaluate_hand(player['cards'] + game.board_cards)
+        
+        # Call showdown logic
+        await game._handle_winner_with_hands(hands, remaining_players)
+        
+        # Player 2 should win both main pot (300) and side pot (200)
+        assert game.players[pos1]['chip_count'] == 0
+        assert game.players[pos2]['chip_count'] == 1300  # 800 + 500
+        assert game.players[pos3]['chip_count'] == 800
+    
+    @pytest.mark.asyncio
+    async def test_split_pot_with_all_in(self, mock_callbacks):
+        """Test pot splitting when players tie and one is all-in"""
+        game = PokerGame(id=1, big_blind=10, max_players=8)
+        game.message_callback = mock_callbacks['message_callback']
+        game.private_message_callback = mock_callbacks['private_message_callback']
+        
+        user1 = MockUser("player1")
+        user2 = MockUser("player2")
+        user3 = MockUser("player3")
+        
+        pos1 = game.add_player(user1)
+        pos2 = game.add_player(user2)
+        pos3 = game.add_player(user3)
+        
+        # Set specific chip counts
+        game.players[pos1]['chip_count'] = 100
+        game.players[pos2]['chip_count'] = 1000
+        game.players[pos3]['chip_count'] = 1000
+        
+        # Set up game state
+        game.game_state = 'river'
+        game.players[pos1]['active'] = True
+        game.players[pos2]['active'] = True
+        game.players[pos3]['active'] = True
+        
+        # Give all players identical pair hands
+        game.board_cards = Stack()
+        game.board_cards.add([Card('Ace', 'Spades'), Card('Ace', 'Hearts'), Card('King', 'Diamonds'), 
+                              Card('Queen', 'Clubs'), Card('Jack', 'Spades')])
+        
+        # All players have the same kicker cards
+        game.players[pos1]['cards'] = Stack()
+        game.players[pos1]['cards'].add([Card('2', 'Diamonds'), Card('3', 'Diamonds')])
+        
+        game.players[pos2]['cards'] = Stack()
+        game.players[pos2]['cards'].add([Card('4', 'Diamonds'), Card('5', 'Diamonds')])
+        
+        game.players[pos3]['cards'] = Stack()
+        game.players[pos3]['cards'].add([Card('6', 'Diamonds'), Card('7', 'Diamonds')])
+        
+        # Player 1 goes all-in with 100
+        game.player_bet(pos1, 100)
+        # Player 2 raises to 200
+        game.player_bet(pos2, 200)
+        # Player 3 calls 200
+        game.player_bet(pos3, 200)
+        
+        # Evaluate hands
+        remaining_players = game.get_not_folded_players()
+        hands = {}
+        for pos in remaining_players:
+            player = remaining_players[pos]
+            hands[pos] = game._evaluate_hand(player['cards'] + game.board_cards)
+        
+        # Call showdown logic
+        await game._handle_winner_with_hands(hands, remaining_players)
+        
+        # All have identical hands (pair of Aces with K-Q-J kickers)
+        # Main pot: 300 split 3 ways = 100 each
+        # Side pot: 200 split between P2 and P3 = 100 each
+        # Final: P1=100, P2=900, P3=900
+        assert game.players[pos1]['chip_count'] == 100
+        assert game.players[pos2]['chip_count'] == 1000  # 800 + 200 (won 100 from main + 100 from side)
+        assert game.players[pos3]['chip_count'] == 1000  # 800 + 200 (won 100 from main + 100 from side)
