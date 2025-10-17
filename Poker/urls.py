@@ -20,6 +20,7 @@ from django.urls import path, include
 
 urlpatterns = [
     path('', include('app.urls')),
+    path('bridge/', include('bridge.urls', namespace='bridge')),
     path('admin/', admin.site.urls),
 ]
 

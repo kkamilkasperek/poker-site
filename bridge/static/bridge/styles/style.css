@@ -1,0 +1,314 @@
+/* body {
+    margin: 0;
+    height: 100vh;
+    background: #f0f0f0;
+    position: relative;
+  } */
+
+  .player {
+    position: absolute;
+    background-color: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 2vh;
+  }
+
+
+  
+  /* Krawędziowe divy */
+  .table-north {
+    position: absolute;
+    background-color: transparent;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40%;
+    height: 20%;
+
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+
+    padding-top: 5%;
+  }
+  
+  .table-south {
+    position: absolute;
+    background-color: transparent;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40%;
+    height: 20%;
+
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+
+    padding-bottom: 5%;
+  }
+  
+  .table-west {
+    position: absolute;
+    background-color: transparent;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10%;
+    height: 40%;
+
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .table-east {
+    position: absolute;
+    background-color: transparent;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10%;
+    height: 40%;
+
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+  
+  /* Środkowy div */
+  .table-center {
+    position: absolute;
+    background-color: transparent;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20%;
+    height: 20%;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  .table-center p {
+    margin: 0;
+  }
+
+  
+  
+
+  .north {
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+
+    width: 70vw;
+    height: 20vh;
+    /* border-style: solid;
+    border-width: 2px;
+    border-color: black; */
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    margin-top: 1vh;
+  }
+
+  .south {
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+
+    width: 70vw;
+    height: 20vh;
+    /* border-style: solid;
+    border-width: 2px;
+    border-color: black; */
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .west {
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+
+    height: 70vh;
+    width: 20vw;
+    /* border-style: solid;
+    border-width: 2px;
+    border-color: black; */
+    /* border: 1px dashed red; */
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+  }
+
+  .east {
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+
+    height: 70vh;
+    width: 20vw;
+    /* border-style: solid;
+    border-width: 2px;
+    border-color: black; */
+    /* border: 1px dashed red; */
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+/* Style dla karty */
+
+.card {
+  height: auto;
+  object-fit: contain; /* zachowuje proporcje */
+  display: block;
+
+  max-width: 7vw; /* lub mniej, zależnie ile kart */
+  z-index: 0;
+  transition: transform 0.2s, z-index 0.2s;
+  
+  cursor: pointer;  
+}
+
+.north .card, .south .card {
+  margin-left: -4%; /* nachodzenie kart – eksperymentuj z wartością */
+  transform: translateX(4%); 
+}
+
+.west .card, .east .card {
+  margin-top: -35%;
+  transform: translateY(35%); 
+}
+
+.card-averse:hover {
+  transform: translateY(-10px);
+  z-index: 10;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 1); /* podświetlenie */
+}
+
+
+/* Style dla przycisku otwierającego */
+
+/* Style dla modala */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+/* Style dla siatki przycisków */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin: 20px 0;
+}
+
+/* Style dla wyświetlania tabeli z wynikami */
+
+.modal-results {
+  display: none;
+  position: fixed;
+  z-index: 100;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.5);
+}
+
+.modal-results-content {
+  background-color: white;
+  margin: 10% auto;
+  padding: 20px;
+  border-radius: 8px;
+  width: 400px;
+  text-align: center;
+}
+
+.modal-results-content table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.modal-results-content th, .modal-results-content td {
+  border: 1px solid #ccc;
+  padding: 10px;
+}
+
+.modal-results-content th {
+  background-color: #f1f1f1;
+}
+
+.close {
+  float: right;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.turn-holder {
+  font-size: 20px;
+  color: white;
+}
+
+.info {
+  color: white;
+  display: flex;
+  flex-direction: row;
+}
+
+.info p {
+  padding: 1vw;
+}

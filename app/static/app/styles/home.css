@@ -1,5 +1,5 @@
 .main-content {
-    background: url('../img/pokerbg_generated.jpg') no-repeat center center;
+    background: url('/static/img/pokerbg_generated.jpg') no-repeat center center;
     background-size: cover;
     color: white;
     height: calc(100vh - 56px);

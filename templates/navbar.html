@@ -3,7 +3,7 @@
 <nav class="navbar navbar-expand-lg navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="{% url 'index' %}" style="width: 200px;">
-            <img src="{% static 'app/img/dupkso.png' %}" alt="Logo" style="height: 40px;">
+            <img src="{% static 'img/dupkso.png' %}" alt="Logo" style="height: 40px;">
         </a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -17,7 +17,7 @@
                     <a class="nav-link {% if page == 'rooms' %}active{% endif %}" href="{% url 'rooms' %}">Rooms</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Bridge</a>
+                    <a class="nav-link" href="{% url 'bridge:index' %}">Bridge</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#">Contact</a>

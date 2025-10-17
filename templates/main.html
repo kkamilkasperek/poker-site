@@ -20,6 +20,12 @@
         <link href="{% static 'app/styles/room_form.css' %}" rel="stylesheet">
     {% elif  page == 'room' %}
         <link href="{% static 'app/styles/table.css' %}" rel="stylesheet">
+    {% elif page == 'bridge'  %}
+        <link rel="stylesheet" href="{% static 'bridge/styles/main.css' %}">
+        <link rel="stylesheet" href="{% static 'bridge/styles/style.css' %}">
+        <link rel="stylesheet" href="{% static 'bridge/styles/button-styles.css' %}">
+        <link rel="stylesheet" href="{% static 'bridge/styles/cards.css' %}">
+        <script src="{% static 'bridge/js/main.js' %}"></script>
      {% endif %}
 </head>
 <body>

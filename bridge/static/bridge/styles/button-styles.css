@@ -1,0 +1,81 @@
+.start-button {
+    position: absolute;
+    bottom: 3vh;
+    right: 3vw;
+    padding: 10px 20px;
+    background-color: white;
+    color: black;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 20px;
+    transition: background-color 0.3s ease
+  }
+
+.corner-button {
+    position: absolute;
+    bottom: 3vh;
+    right: 12vw;
+
+    :hover {
+        background-color: #1c5985;
+    }
+  }
+
+  .open-modal-btn {
+    padding: 10px 20px;
+    font-size: 20px;
+    background-color: white;
+    color: red;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: none;
+}
+
+.grid button {
+    padding: 20px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.grid button:hover {
+    background-color: #0056b3;
+}
+
+.grid button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pass-button {
+    align-self: center;
+    width: 50%;
+    padding: 20px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+.download-button {
+    bottom: 3vh;
+    left: 3vw;
+    margin-top: 10px;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 20px;
+    transition: background-color 0.3s ease
+}
