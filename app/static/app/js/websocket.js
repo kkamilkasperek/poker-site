@@ -642,11 +642,11 @@ const handValue = (hand_value, hand_cards) => {
             break;
         case 'straight':
             const highCardStraight = hand_cards[0].match(/^(\w+)/)[1];
-            playerHandDiv.textContent = `straight ${highCard} high`;
+            playerHandDiv.textContent = `straight ${highCardStraight} high`;
             break;
         case 'flush':
             const highCardFlush = hand_cards[0].match(/^(\w+)/)[1];
-            playerHandDiv.textContent = `flush ${highCard} high`;
+            playerHandDiv.textContent = `flush ${highCardFlush} high`;
             break;
         case 'full_house':
             const threeOfKindFlush = hand_cards[0].match(/^(\w+)/)[1];
@@ -659,7 +659,7 @@ const handValue = (hand_value, hand_cards) => {
             break;
         case 'straight_flush':
             const highCardStraightFlush = hand_cards[0].match(/^(\w+)/)[1];
-            playerHandDiv.textContent = `straight flush ${highCard} high`;
+            playerHandDiv.textContent = `straight flush ${highCardStraightFlush} high`;
 
 
     }

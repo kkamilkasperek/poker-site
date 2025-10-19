@@ -282,7 +282,7 @@ class PokerGame:
                 for i in range(len(suited_cards) - 4):
                     hand = suited_cards[i: i + 5]
                     if hand[0].value == 'Ace' and hand[1].value == '5' and len(hand) == 5:  # wheel
-                        return True, hand[1:] + hand[0]
+                        return True, hand[1:] + [hand[0]]
                     if RANKS[hand[0].value] - RANKS[hand[-1].value] == 4 and len(hand) == 5:
                         return True, hand
             return False, None
@@ -336,7 +336,7 @@ class PokerGame:
             for i in range(len(unique_ranks) - 4):
                 hand = unique_ranks[i: i + 5]
                 if hand[0].value == 'Ace' and hand[1].value == '5' and len(hand) == 5:
-                    return True, hand[1:] + hand[0]
+                    return True, hand[1:] + [hand[0]]
                 if RANKS[hand[0].value] - RANKS[hand[-1].value] == 4 and len(hand) == 5:
                     return True, hand
             return False, None
@@ -370,7 +370,8 @@ class PokerGame:
             one_pair = pair(cards)
             if (one_pair[0]):
                 high_pair = one_pair[1][0]
-                second_pair = pair(one_pair[1][1])  # check pair in remaining cards
+                hand_without_first_pair = [card for card in cards if card.value != high_pair.value]
+                second_pair = pair(hand_without_first_pair)  # check pair in remaining cards
                 if (second_pair[0]):
                     low_pair = second_pair[1][0]
                     kicker = second_pair[1][1][0]  # highest remaining card
