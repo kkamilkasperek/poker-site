@@ -167,27 +167,27 @@ class PokerGame:
 
     async def _setup_showdown(self):
         remaining_players = self.get_not_folded_players()
-        winner_positions = []
-        best_hand = None
+        
+        if len(remaining_players) == 0:
+            return
+        
         if len(remaining_players) == 1:
-            winner_positions = list(remaining_players.keys())
+            # Only one player left, they win everything
+            await self._handle_winner(list(remaining_players.keys()))
         else:
+            # Multiple players, need to evaluate hands and handle side pots
             await self.notify_showdown(remaining_players)
             await asyncio.sleep(8) # give time for players to see cards
+            
+            # Evaluate all hands
+            hands = {}
             for pos in remaining_players:
                 player = remaining_players[pos]
-                hand = self._evaluate_hand(player['cards'] + self.board_cards)
-                if best_hand is None:
-                    best_hand = hand
-                    winner_positions = [pos]
-                else:
-                    comparison = self._compare_hands(hand, best_hand)
-                    if comparison == 1:
-                        best_hand = hand
-                        winner_positions = [pos]
-                    elif comparison == 0:
-                        winner_positions.append(pos)
-        await self._handle_winner(winner_positions)
+                hands[pos] = self._evaluate_hand(player['cards'] + self.board_cards)
+            
+            # Calculate and award pots with side pot logic
+            await self._handle_winner_with_hands(hands, remaining_players)
+        
         await self._next_state()
 
 
@@ -226,6 +226,9 @@ class PokerGame:
     async def _handle_winner(self, winner_positions):
         if not winner_positions:
             return
+        
+        # Simple case: when there's only one player or no side pots to worry about
+        # (This is called when everyone folds except one player)
         split_pot = self.pot // len(winner_positions)
         for pos in winner_positions:
             player = self.players.get(pos)
@@ -236,6 +239,87 @@ class PokerGame:
             {
                 'winner_positions': winner_positions,
                 'amount_won': split_pot,
+            }
+        )
+    
+    async def _handle_winner_with_hands(self, hands, remaining_players):
+        """
+        Handle winner determination and pot distribution with proper side pot logic.
+        
+        Args:
+            hands: Dict of {position: evaluated_hand} for each remaining player
+            remaining_players: Dict of {position: player_data} for players not folded
+        """
+        if not remaining_players:
+            return
+        
+        # Create a list of (position, bet_amount) sorted by bet amount
+        sorted_bets = sorted([(pos, remaining_players[pos]['current_bet']) 
+                             for pos in remaining_players], 
+                            key=lambda x: x[1])
+        
+        # Build pots: each pot level represents chips that players at that level can win
+        pots = []
+        previous_bet = 0
+        
+        for i, (pos, bet) in enumerate(sorted_bets):
+            if bet > previous_bet:
+                # Number of players who contributed to this bet level
+                players_in = len(sorted_bets) - i
+                pot_amount = (bet - previous_bet) * players_in
+                
+                # Players eligible for this pot are those who bet at least this much
+                eligible_positions = [p for p, b in sorted_bets[i:]]
+                
+                if pot_amount > 0:
+                    pots.append({
+                        'amount': pot_amount,
+                        'eligible_positions': eligible_positions
+                    })
+                
+                previous_bet = bet
+        
+        # Distribute each pot to its winner(s)
+        total_won = {}
+        all_winners = []
+        
+        for pot_info in pots:
+            # Find the best hand among eligible players for this pot
+            best_hand = None
+            pot_winners = []
+            
+            for pos in pot_info['eligible_positions']:
+                if pos in hands:
+                    hand = hands[pos]
+                    if best_hand is None:
+                        best_hand = hand
+                        pot_winners = [pos]
+                    else:
+                        comparison = self._compare_hands(hand, best_hand)
+                        if comparison == 1:
+                            best_hand = hand
+                            pot_winners = [pos]
+                        elif comparison == 0:
+                            pot_winners.append(pos)
+            
+            # Award this pot to its winner(s)
+            if pot_winners:
+                split_amount = pot_info['amount'] // len(pot_winners)
+                for pos in pot_winners:
+                    player = self.players.get(pos)
+                    if player:
+                        player['chip_count'] += split_amount
+                        total_won[pos] = total_won.get(pos, 0) + split_amount
+                        if pos not in all_winners:
+                            all_winners.append(pos)
+        
+        # Send message about winners (use the main pot winners or all winners)
+        main_winners = all_winners if all_winners else []
+        await self._send_broadcast_message(
+            'round_winner',
+            {
+                'winner_positions': main_winners,
+                'amount_won': total_won.get(main_winners[0], 0) if main_winners else 0,
             }
         )
 
